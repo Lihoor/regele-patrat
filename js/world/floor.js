@@ -24,7 +24,7 @@ class Floor {
   }
 
   draw(ctx) {
-    ctx.fillStyle = "#241a10";
+    ctx.fillStyle = "#2b2015";
     ctx.beginPath();
     ctx.moveTo(this.edge[0][0], this.edge[0][1]);
     for (const p of this.edge) ctx.lineTo(p[0], p[1]);
@@ -40,7 +40,7 @@ class Floor {
     for (const p of this.edge) ctx.lineTo(p[0], p[1]);
     ctx.stroke();
 
-    ctx.fillStyle = "#38291a";
+    ctx.fillStyle = "#3f2f1e";
     for (let x = 0; x < this.width; x += 46) {
       ctx.fillRect(x, this.groundY, 2, this.floorH);
     }
