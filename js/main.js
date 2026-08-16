@@ -15,6 +15,8 @@ let furniture = [];
 let lighting = null;
 let dust = null;
 let king = null;
+let chest = null;
+let inventory = null;
 
 function buildWorld() {
   level = new Floor(W, H);
@@ -43,6 +45,9 @@ function buildWorld() {
     new Furniture("barrel", W * 0.90, level.groundY, 1.8),
   ];
 
+  chest = new Chest(W * 0.20, level.groundY, 1.5);
+  if (!inventory) inventory = new Inventory();
+
   dust = new Dust(W, H);
   if (!lighting) lighting = new Lighting();
 }
@@ -69,9 +74,20 @@ function frame(now) {
   last = now;
 
   king.update(dt, input, level, dust);
+  chest.update(dt, king.x, king.w);
   for (const torch of torches) torch.update(dt);
   for (const f of furniture) f.update(dt);
   dust.update(dt, W, H);
+
+  if (input.consumeInteract()) {
+    const result = chest.interact();
+    if (result === "sword") inventory.add("sword");
+  }
+  const eq = input.consumeEquip();
+  if (eq >= 0) {
+    inventory.toggleEquip(eq);
+    king.heldItem = inventory.getEquipped();
+  }
 
   const torchLights = [];
   for (const torch of torches) torchLights.push(torch.lightInfo());
@@ -79,6 +95,8 @@ function frame(now) {
     const l = f.lightInfo();
     if (l) torchLights.push(l);
   }
+  const chestLight = chest.lightInfo();
+  if (chestLight) torchLights.push(chestLight);
 
   const allLights = torchLights.slice();
   allLights.push({
@@ -90,6 +108,7 @@ function frame(now) {
   wall.draw(ctx);
   level.draw(ctx);
   for (const f of furniture) f.draw(ctx);
+  chest.drawBody(ctx);
 
   lighting.apply(ctx, W, H, allLights);
   lighting.glow(ctx, W, H, torchLights);
@@ -98,6 +117,9 @@ function frame(now) {
   lighting.vignette(ctx, W, H);
 
   king.draw(ctx, level);
+
+  chest.drawHUD(ctx);
+  inventory.draw(ctx, W, H);
 
   drawStamina(ctx);
 
