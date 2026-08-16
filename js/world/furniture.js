@@ -14,11 +14,11 @@ class Furniture {
   lightInfo() {
     if (this.type === "candelabra") {
       const f = 1 + Math.sin(this.t * 9) * 0.07 + Math.sin(this.t * 23) * 0.05;
-      return { x: this.x, y: this.y - 52 * this.scale, r: 170 * f * this.scale };
+      return { x: this.x, y: this.y - 52 * this.scale, r: 190 * f * this.scale };
     }
     if (this.type === "table") {
       const f = 1 + Math.sin(this.t * 11) * 0.06;
-      return { x: this.x + 10 * this.scale, y: this.y - 33 * this.scale, r: 130 * f * this.scale };
+      return { x: this.x + 10 * this.scale, y: this.y - 33 * this.scale, r: 140 * f * this.scale };
     }
     return null;
   }
@@ -41,8 +41,8 @@ class Furniture {
 
   drawThrone(ctx) {
     const g = ctx.createLinearGradient(0, -96, 0, 0);
-    g.addColorStop(0, "#4a2e1c");
-    g.addColorStop(1, "#2a180e");
+    g.addColorStop(0, "#6b4326");
+    g.addColorStop(1, "#3a2212");
     ctx.fillStyle = g;
     ctx.strokeStyle = "rgba(0,0,0,0.55)";
     ctx.lineWidth = 2;
@@ -50,43 +50,45 @@ class Furniture {
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = "#5d1418";
+    ctx.fillStyle = "#8a1a20";
     this.roundRect(ctx, -24, -88, 48, 58, 8);
     ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,0.05)";
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
     ctx.lineWidth = 1;
     this.roundRect(ctx, -24, -88, 48, 58, 8);
     ctx.stroke();
 
-    ctx.fillStyle = "#3a2214";
+    ctx.fillStyle = "#4a2c18";
     this.roundRect(ctx, -36, -24, 72, 18, 6);
     ctx.fill();
 
-    ctx.fillStyle = "#6b1a1f";
+    ctx.fillStyle = "#a1242e";
     this.roundRect(ctx, -30, -26, 60, 12, 5);
     ctx.fill();
 
-    ctx.fillStyle = "#38200f";
+    ctx.fillStyle = "#4a2c16";
     this.roundRect(ctx, -40, -40, 16, 34, 5);
     ctx.fill();
     this.roundRect(ctx, 24, -40, 16, 34, 5);
     ctx.fill();
-    ctx.fillStyle = "#6b1a1f";
+    ctx.fillStyle = "#a1242e";
     this.roundRect(ctx, -42, -42, 20, 8, 4);
     ctx.fill();
     this.roundRect(ctx, 22, -42, 20, 8, 4);
     ctx.fill();
 
-    ctx.fillStyle = "#24150c";
+    ctx.fillStyle = "#2e1a0e";
     ctx.fillRect(-30, -8, 11, 8);
     ctx.fillRect(19, -8, 11, 8);
 
-    ctx.strokeStyle = "#c9a227";
-    ctx.lineWidth = 1.6;
+    ctx.strokeStyle = "#e0b83c";
+    ctx.lineWidth = 1.8;
     this.roundRect(ctx, -34, -96, 68, 86, 10);
     ctx.stroke();
 
-    ctx.fillStyle = "#d8b04a";
+    ctx.fillStyle = "#f0c64f";
+    ctx.strokeStyle = "#8a6d1c";
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.moveTo(-8, -70);
     ctx.lineTo(-6, -78);
@@ -98,28 +100,29 @@ class Furniture {
     ctx.lineTo(0, -72);
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
   }
 
   drawTable(ctx) {
-    ctx.fillStyle = "#4a301c";
+    ctx.fillStyle = "#6b4527";
     ctx.strokeStyle = "rgba(0,0,0,0.5)";
     ctx.lineWidth = 2;
     this.roundRect(ctx, -52, -30, 104, 10, 4);
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = "rgba(255,225,170,0.08)";
+    ctx.fillStyle = "rgba(255,225,170,0.10)";
     this.roundRect(ctx, -52, -30, 104, 3, 2);
     ctx.fill();
 
-    ctx.fillStyle = "#33200f";
+    ctx.fillStyle = "#4a2f18";
     ctx.fillRect(-44, -20, 9, 20);
     ctx.fillRect(35, -20, 9, 20);
-    ctx.fillStyle = "#241807";
+    ctx.fillStyle = "#33200f";
     ctx.fillRect(-44, -6, 9, 6);
     ctx.fillRect(35, -6, 9, 6);
 
-    ctx.fillStyle = "#6a6a74";
+    ctx.fillStyle = "#8a8a96";
     ctx.beginPath();
     ctx.ellipse(-16, -30, 10, 3.4, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -131,7 +134,7 @@ class Furniture {
   }
 
   drawBarrel(ctx) {
-    ctx.fillStyle = "#5a3d20";
+    ctx.fillStyle = "#7a542c";
     ctx.strokeStyle = "rgba(0,0,0,0.5)";
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -143,7 +146,7 @@ class Furniture {
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = "#6b4a28";
+    ctx.fillStyle = "#8a622f";
     ctx.beginPath();
     ctx.ellipse(0, -40, 16, 5, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -151,7 +154,7 @@ class Furniture {
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    ctx.strokeStyle = "#33200f";
+    ctx.strokeStyle = "#4a3118";
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(-17.5, -30);
@@ -162,21 +165,21 @@ class Furniture {
     ctx.quadraticCurveTo(0, -4, 17.5, -2);
     ctx.stroke();
 
-    ctx.fillStyle = "rgba(255,220,170,0.10)";
+    ctx.fillStyle = "rgba(255,220,170,0.12)";
     ctx.beginPath();
     ctx.ellipse(-6, -28, 4, 10, 0, 0, Math.PI * 2);
     ctx.fill();
   }
 
   drawCrate(ctx) {
-    ctx.fillStyle = "#4a3420";
+    ctx.fillStyle = "#6b4a28";
     ctx.strokeStyle = "rgba(0,0,0,0.55)";
     ctx.lineWidth = 2;
     this.roundRect(ctx, -20, -32, 40, 32, 3);
     ctx.fill();
     ctx.stroke();
 
-    ctx.strokeStyle = "#2c1d10";
+    ctx.strokeStyle = "#3a2816";
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(-20, -32);
@@ -185,27 +188,27 @@ class Furniture {
     ctx.lineTo(-20, 0);
     ctx.stroke();
 
-    ctx.fillStyle = "rgba(255,220,170,0.10)";
+    ctx.fillStyle = "rgba(255,220,170,0.12)";
     this.roundRect(ctx, -20, -32, 40, 3, 1.5);
     ctx.fill();
   }
 
   drawCandelabra(ctx) {
-    ctx.fillStyle = "#3a3a44";
+    ctx.fillStyle = "#5a5a66";
     ctx.strokeStyle = "rgba(0,0,0,0.6)";
     ctx.lineWidth = 2;
     this.roundRect(ctx, -16, -6, 32, 8, 3);
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = "#4a4a56";
+    ctx.fillStyle = "#6a6a76";
     this.roundRect(ctx, -3, -40, 6, 36, 3);
     ctx.fill();
-    ctx.fillStyle = "#5a5a66";
+    ctx.fillStyle = "#7a7a88";
     this.roundRect(ctx, -5, -42, 10, 6, 2);
     ctx.fill();
 
-    ctx.strokeStyle = "#4a4a56";
+    ctx.strokeStyle = "#6a6a76";
     ctx.lineWidth = 5;
     ctx.lineCap = "round";
     ctx.beginPath();
@@ -215,7 +218,7 @@ class Furniture {
     ctx.quadraticCurveTo(8, -46, 17, -52);
     ctx.stroke();
 
-    ctx.strokeStyle = "#5a5a66";
+    ctx.strokeStyle = "#7a7a88";
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(-17, -52);
@@ -233,7 +236,7 @@ class Furniture {
     const w = 120;
     const h = 170;
 
-    ctx.fillStyle = "#2c1a10";
+    ctx.fillStyle = "#3a2412";
     this.roundRect(ctx, -w / 2 - 6, -8, w + 12, 9, 3);
     ctx.fill();
     ctx.strokeStyle = "rgba(0,0,0,0.5)";
@@ -242,8 +245,8 @@ class Furniture {
     ctx.stroke();
 
     const g = ctx.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, "#431016");
-    g.addColorStop(1, "#260609");
+    g.addColorStop(0, "#5c1620");
+    g.addColorStop(1, "#38080c");
     ctx.fillStyle = g;
     this.roundRect(ctx, -w / 2, 0, w, h, 4);
     ctx.fill();
@@ -252,12 +255,12 @@ class Furniture {
     this.roundRect(ctx, -w / 2, 0, w, h, 4);
     ctx.stroke();
 
-    ctx.strokeStyle = "#c9a227";
+    ctx.strokeStyle = "#e0b83c";
     ctx.lineWidth = 3;
     this.roundRect(ctx, -w / 2 + 6, 6, w - 12, h - 12, 3);
     ctx.stroke();
 
-    ctx.fillStyle = "#d8b04a";
+    ctx.fillStyle = "#f0c64f";
     ctx.strokeStyle = "#8a6d1c";
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -281,7 +284,7 @@ class Furniture {
       ctx.stroke();
     }
 
-    ctx.fillStyle = "#c9a227";
+    ctx.fillStyle = "#e0b83c";
     for (let i = -4; i <= 4; i++) {
       ctx.fillRect(i * 12 - 1, h - 6, 2, 9);
     }
