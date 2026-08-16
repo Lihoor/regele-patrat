@@ -2,6 +2,9 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 const input = new Input();
+const sound = new Sound();
+
+window.addEventListener("keydown", () => sound.unlock(), { once: true });
 
 let W = 0;
 let H = 0;
@@ -19,6 +22,7 @@ function buildWorld() {
 
   const frac = king ? king.x / Math.max(1, W - king.w) : 0.5;
   king = new King(level, W);
+  king.sound = sound;
   if (frac) king.x = frac * (W - king.w);
 
   torches = [
@@ -95,7 +99,49 @@ function frame(now) {
 
   king.draw(ctx, level);
 
+  drawStamina(ctx);
+
   requestAnimationFrame(frame);
+}
+
+function drawStamina(ctx) {
+  const bw = Math.min(260, W * 0.3);
+  const bh = 13;
+  const bx = (W - bw) / 2;
+  const by = H - 26;
+  const p = Math.max(0, Math.min(1, king.stamina / 100));
+
+  ctx.fillStyle = "rgba(0,0,0,0.55)";
+  roundRect(ctx, bx - 3, by - 3, bw + 6, bh + 6, 6);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.22)";
+  ctx.lineWidth = 1;
+  roundRect(ctx, bx - 3, by - 3, bw + 6, bh + 6, 6);
+  ctx.stroke();
+
+  ctx.fillStyle = p > 0.3 ? "#e8c84a" : "#e05a3a";
+  if (p > 0.01) {
+    roundRect(ctx, bx, by, bw * p, bh, 4);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.28)";
+    roundRect(ctx, bx, by, bw * p, bh * 0.45, 4);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = "rgba(255,255,255,0.8)";
+  ctx.font = "bold 11px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("STAMINA", W / 2, by - 7);
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
 }
 
 requestAnimationFrame(frame);
