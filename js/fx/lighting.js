@@ -1,6 +1,6 @@
 class Lighting {
   constructor() {
-    this.darkness = "rgba(5,4,10,0.87)";
+    this.darkness = "rgba(5,4,10,0.72)";
   }
 
   apply(ctx, width, height, lights) {
@@ -29,8 +29,8 @@ class Lighting {
     for (const l of lights) {
       const r = l.r;
       const g = ctx.createRadialGradient(l.x, l.y, 0, l.x, l.y, r);
-      g.addColorStop(0, "rgba(255,160,60,0.16)");
-      g.addColorStop(0.5, "rgba(255,110,30,0.06)");
+      g.addColorStop(0, "rgba(255,160,60,0.10)");
+      g.addColorStop(0.5, "rgba(255,110,30,0.04)");
       g.addColorStop(1, "rgba(255,80,20,0)");
       ctx.fillStyle = g;
       ctx.beginPath();
