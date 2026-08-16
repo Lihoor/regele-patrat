@@ -26,7 +26,7 @@ class StoneWall {
           w: sw,
           h: sh,
           rot: (Math.random() - 0.5) * 0.045,
-          g: 34 + Math.random() * 42,
+          g: 44 + Math.random() * 42,
           j: j,
           crack: Math.random() < 0.16 ? this.makeCrack(sw, sh) : null,
           stain: Math.random() < 0.14,
