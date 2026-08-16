@@ -29,14 +29,14 @@ function buildWorld() {
   ];
 
   furniture = [
-    new Furniture("tapestry", W * 0.5, level.groundY * 0.08, 1),
-    new Furniture("throne", W * 0.07, level.groundY, 1),
-    new Furniture("table", W * 0.28, level.groundY, 1),
-    new Furniture("barrel", W * 0.50, level.groundY, 0.95),
-    new Furniture("barrel", W * 0.545, level.groundY, 0.7),
-    new Furniture("crate", W * 0.61, level.groundY, 1),
-    new Furniture("candelabra", W * 0.74, level.groundY, 1),
-    new Furniture("barrel", W * 0.90, level.groundY, 1),
+    new Furniture("tapestry", W * 0.5, level.groundY * 0.06, 1.3),
+    new Furniture("throne", W * 0.07, level.groundY, 1.5),
+    new Furniture("table", W * 0.28, level.groundY, 1.35),
+    new Furniture("barrel", W * 0.50, level.groundY, 1.25),
+    new Furniture("barrel", W * 0.545, level.groundY, 0.95),
+    new Furniture("crate", W * 0.61, level.groundY, 1.35),
+    new Furniture("candelabra", W * 0.74, level.groundY, 1.4),
+    new Furniture("barrel", W * 0.90, level.groundY, 1.35),
   ];
 
   dust = new Dust(W, H);
