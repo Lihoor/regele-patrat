@@ -4,6 +4,8 @@ class Input {
     this.right = false;
     this.sprint = false;
     this._jumpQueued = false;
+    this._interactQueued = false;
+    this._equipSlot = -1;
 
     window.addEventListener("keydown", (e) => this.onKey(e, true));
     window.addEventListener("keyup", (e) => this.onKey(e, false));
@@ -25,11 +27,29 @@ class Input {
       e.preventDefault();
       if (down) this._jumpQueued = true;
     }
+    if (e.code === "KeyE") {
+      if (down) this._interactQueued = true;
+    }
+    if (down && e.code === "Digit1") this._equipSlot = 0;
+    if (down && e.code === "Digit2") this._equipSlot = 1;
+    if (down && e.code === "Digit3") this._equipSlot = 2;
   }
 
   consumeJump() {
     const j = this._jumpQueued;
     this._jumpQueued = false;
     return j;
+  }
+
+  consumeInteract() {
+    const v = this._interactQueued;
+    this._interactQueued = false;
+    return v;
+  }
+
+  consumeEquip() {
+    const v = this._equipSlot;
+    this._equipSlot = -1;
+    return v;
   }
 }
