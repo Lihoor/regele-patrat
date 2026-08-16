@@ -45,8 +45,8 @@ class Sound {
 
   footstep(sprint) {
     const now = performance.now();
-    if (now - this.lastStep < (sprint ? 90 : 130)) return;
+    if (now - this.lastStep < (sprint ? 200 : 260)) return;
     this.lastStep = now;
-    this.play(sprint ? "step_fast" : "step", 1, sprint ? 0.22 : 0.25);
+    this.play(sprint ? "step_fast" : "step", 1, sprint ? 0.2 : 0.22);
   }
 }
