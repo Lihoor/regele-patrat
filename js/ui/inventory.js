@@ -34,7 +34,7 @@ class Inventory {
     const total = this.slots.length;
     const gap = 6;
     const totalW = total * this.slotSize + (total - 1) * gap;
-    const startX = W / 2 - totalW / 2;
+    const startX = 18;
     const startY = H - 62;
 
     for (let i = 0; i < total; i++) {
