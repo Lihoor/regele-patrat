@@ -19,6 +19,59 @@ let chest = null;
 let inventory = null;
 let menu = null;
 let mouseX = 0, mouseY = 0;
+let gameStarted = false;
+
+const dialogue = {
+  active: false,
+  text: "",
+  shown: 0,
+  timer: 0,
+  speed: 35,
+  show(text) { this.active = true; this.text = text; this.shown = 0; this.timer = 0; },
+  update(dt) {
+    if (!this.active) return;
+    this.timer += dt;
+    this.shown = Math.min(this.text.length, Math.floor(this.timer * this.speed));
+  },
+  draw(ctx, W, H) {
+    if (!this.active) return;
+    const boxH = 90;
+    const boxY = H - boxH - 20;
+    ctx.fillStyle = "rgba(10,8,5,0.88)";
+    roundRect(ctx, 40, boxY, W - 80, boxH, 10);
+    ctx.fill();
+    ctx.strokeStyle = "#b8922e";
+    ctx.lineWidth = 2;
+    roundRect(ctx, 40, boxY, W - 80, boxH, 10);
+    ctx.stroke();
+    const txt = this.text.substring(0, this.shown);
+    ctx.fillStyle = "#e8d8a0";
+    ctx.font = "18px Georgia, serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    const maxW = W - 120;
+    const words = txt.split(" ");
+    let line = "", ly = boxY + 18;
+    for (const w of words) {
+      const test = line + (line ? " " : "") + w;
+      if (ctx.measureText(test).width > maxW && line) {
+        ctx.fillText(line, 60, ly); line = w; ly += 24;
+      } else line = test;
+    }
+    if (line) ctx.fillText(line, 60, ly);
+    if (this.shown >= this.text.length) {
+      ctx.fillStyle = "rgba(180,146,46,0.5)";
+      ctx.font = "13px Georgia, serif";
+      ctx.textAlign = "right";
+      ctx.fillText(menu && menu.lang === "en" ? "Click to continue..." : "Click pentru a continua...", W - 60, boxY + boxH - 16);
+    }
+  },
+  advance() {
+    if (!this.active) return false;
+    if (this.shown < this.text.length) { this.shown = this.text.length; return true; }
+    this.active = false; return true;
+  }
+};
 
 function buildWorld() {
   level = new Floor(W, H);
@@ -81,7 +134,9 @@ canvas.addEventListener("mouseup", () => { if (menu) menu.handleUp(); });
 canvas.addEventListener("click", (e) => {
   if (menu && menu.active) {
     menu.handleClick(e.clientX, e.clientY, W, H);
+    return;
   }
+  if (dialogue.active) { dialogue.advance(); return; }
 });
 
 let last = performance.now();
@@ -96,13 +151,30 @@ function frame(now) {
     requestAnimationFrame(frame);
     return;
   }
-  canvas.style.cursor = "default";
+
+  if (!gameStarted) {
+    gameStarted = true;
+    king.sleeping = true;
+    king.sleepTimer = 0;
+    king.sleepProgress = 0;
+    king.x = W * 0.07 - king.w / 2;
+    king.y = level.groundY - king.h + 35;
+    king.onWakeUp = function() {
+      king.y = level.groundY - king.h;
+      const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
+      dialogue.show(L.dialogue);
+    };
+  }
+
+  canvas.style.cursor = dialogue.active ? "default" : "default";
 
   if (menu && menu.music) menu.music.update(dt);
   sound.unlock();
 
-  king.update(dt, input, level, dust);
-  chest.update(dt, king.x, king.w);
+  if (!dialogue.active) {
+    king.update(dt, input, level, dust);
+    chest.update(dt, king.x, king.w);
+  }
   for (const torch of torches) torch.update(dt);
   for (const f of furniture) f.update(dt);
   dust.update(dt, W, H);
@@ -146,6 +218,9 @@ function frame(now) {
 
   chest.drawGlow(ctx);
   king.draw(ctx, level);
+
+  dialogue.update(dt);
+  dialogue.draw(ctx, W, H);
 
   chest.drawHUD(ctx);
   inventory.draw(ctx, W, H);
