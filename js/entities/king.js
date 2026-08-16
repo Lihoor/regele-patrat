@@ -22,9 +22,28 @@ class King {
     this.time = 0;
     this.squashT = 0;
     this.walkT = 0;
+    this.sleeping = false;
+    this.sleepTimer = 0;
+    this.sleepProgress = 1;
+    this.onWakeUp = null;
   }
 
   update(dt, input, level, fx) {
+    if (this.sleeping) {
+      this.sleepTimer += dt;
+      if (this.sleepTimer < 1.0) {
+        this.sleepProgress = 0;
+      } else if (this.sleepTimer < 1.8) {
+        this.sleepProgress = (this.sleepTimer - 1.0) / 0.8;
+      } else {
+        this.sleepProgress = 1;
+        this.sleeping = false;
+        if (this.onWakeUp) this.onWakeUp();
+      }
+      this.time += dt;
+      return;
+    }
+
     this.moving = input.left || input.right;
 
     this.sprinting = this.moving && input.sprint && this.stamina > 0 && !this.sprintBlocked;
@@ -93,6 +112,49 @@ class King {
   draw(ctx, level) {
     const bx = this.x + this.w / 2;
     const by = this.y + this.h;
+
+    if (this.sleeping || this.sleepProgress < 1) {
+      const p = this.sleepProgress;
+      const sleepRot = (1 - p) * 0.22;
+      const sleepLean = (1 - p) * 12;
+      const sk = this.clamp(1, 0.25, 1);
+      this.drawShadow(ctx, bx, level.groundY, sk);
+      const s = this.bodyH / 84;
+      ctx.save();
+      ctx.translate(bx, by);
+      ctx.rotate(sleepRot);
+      ctx.scale(s, s);
+      const W = 84, B = 84;
+      const flutter = Math.sin(this.time * 4) * 1.5;
+      this.drawCape(ctx, W, B, flutter);
+      ctx.save();
+      ctx.scale(this.facing, 1);
+      this.drawHead(ctx, W, B, true, sleepLean);
+      this.drawClothes(ctx, W, B);
+      this.drawLegs(ctx, 0);
+      this.drawCrown(ctx, W, B, sleepLean);
+      ctx.restore();
+      ctx.restore();
+
+      if (p === 0) {
+        ctx.save();
+        const zt = this.time * 1.2;
+        for (let i = 0; i < 3; i++) {
+          const phase = (zt + i * 1.1) % 3.3;
+          const za = phase < 2.5 ? Math.min(1, phase * 0.8) * (1 - (phase - 1.8) / 0.7) : 0;
+          if (za <= 0) continue;
+          const zx = bx + 30 + i * 14 + Math.sin(zt * 2 + i) * 5;
+          const zy = by - 60 - phase * 28;
+          ctx.fillStyle = `rgba(200,190,150,${(za * 0.6).toFixed(2)})`;
+          ctx.font = `bold ${11 + i * 2}px Georgia, serif`;
+          ctx.textAlign = "center";
+          ctx.fillText("z", zx, zy);
+        }
+        ctx.restore();
+      }
+
+      return;
+    }
 
     const air = !this.onGround;
     let bob = 0;
@@ -222,10 +284,11 @@ class King {
     ctx.restore();
   }
 
-  drawHead(ctx, W, B) {
+  drawHead(ctx, W, B, closed, lean) {
+    lean = lean || 0;
     const hw = 84;
     const hh = 44;
-    const top = -B;
+    const top = -B + lean;
     const bot = top + hh;
 
     const faceGrad = ctx.createLinearGradient(0, top, 0, bot);
@@ -297,6 +360,19 @@ class King {
     ctx.arc(-hw / 2 + 2, top + 23, 2.6, 0, Math.PI * 2);
     ctx.fill();
 
+    if (closed) {
+      ctx.strokeStyle = "#1f1a16";
+      ctx.lineWidth = 2.8;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(7, top + 23);
+      ctx.quadraticCurveTo(13, top + 19.5, 19, top + 23);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-7, top + 23);
+      ctx.quadraticCurveTo(-13, top + 19.5, -19, top + 23);
+      ctx.stroke();
+    } else {
     ctx.strokeStyle = "#1f1a16";
     ctx.lineWidth = 3.4;
     ctx.lineCap = "round";
@@ -358,6 +434,7 @@ class King {
     ctx.moveTo(-8, top + 22.5);
     ctx.quadraticCurveTo(-13, top + 20, -18, top + 22.5);
     ctx.stroke();
+    }
 
     ctx.strokeStyle = "rgba(125,95,67,0.7)";
     ctx.lineWidth = 1.6;
@@ -537,9 +614,10 @@ class King {
     ctx.restore();
   }
 
-  drawCrown(ctx, W, B) {
+  drawCrown(ctx, W, B, lean) {
+    lean = lean || 0;
     const cw = 44;
-    const bandY = -B;
+    const bandY = -B + lean;
 
     const g = ctx.createLinearGradient(0, bandY - 18, 0, bandY);
     g.addColorStop(0, "#d8b04a");
