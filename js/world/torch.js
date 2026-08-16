@@ -73,11 +73,11 @@ class Torch {
     const t = this.t;
     const flick = 1 + Math.sin(t * 9) * 0.07 + Math.sin(t * 23.7) * 0.05;
     const sway = Math.sin(t * 7.3) * 4 * s;
-    const h = 36 * s * flick;
+    const h = 44 * s * flick;
 
     const g = ctx.createRadialGradient(this.fx, this.fy - h * 0.3, 2, this.fx, this.fy, h * 1.6);
-    g.addColorStop(0, "rgba(255,160,60,0.42)");
-    g.addColorStop(0.5, "rgba(255,100,25,0.16)");
+    g.addColorStop(0, "rgba(255,160,60,0.5)");
+    g.addColorStop(0.5, "rgba(255,100,25,0.2)");
     g.addColorStop(1, "rgba(255,70,10,0)");
     ctx.fillStyle = g;
     ctx.fillRect(this.fx - h * 1.6, this.fy - h * 1.9, h * 3.2, h * 3.2);
