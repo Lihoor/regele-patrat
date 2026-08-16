@@ -15,6 +15,7 @@ class King {
     this.moving = false;
     this.sprinting = false;
     this.stamina = 100;
+    this.sprintBlocked = false;
     this.stepAcc = 0;
     this.sound = null;
     this.time = 0;
@@ -25,9 +26,14 @@ class King {
   update(dt, input, level, fx) {
     this.moving = input.left || input.right;
 
-    this.sprinting = this.moving && input.sprint && this.stamina > 0;
-    if (this.sprinting) this.stamina = Math.max(0, this.stamina - 40 * dt);
-    else this.stamina = Math.min(100, this.stamina + 16 * dt);
+    this.sprinting = this.moving && input.sprint && this.stamina > 0 && !this.sprintBlocked;
+    if (this.sprinting) {
+      this.stamina = Math.max(0, this.stamina - 40 * dt);
+      if (this.stamina <= 0) this.sprintBlocked = true;
+    } else {
+      this.stamina = Math.min(100, this.stamina + 16 * dt);
+      if (this.stamina >= 35) this.sprintBlocked = false;
+    }
 
     const speed = this.sprinting ? this.speed * 1.7 : this.speed;
 
@@ -64,7 +70,7 @@ class King {
       const wasAir = !this.onGround;
       this.y = level.groundY - this.h;
       if (wasAir && fx) fx.burst(this.x + this.w / 2, level.groundY, 7);
-      if (wasAir && this.sound) this.sound.play("land", 1, 0.85);
+      if (wasAir && this.sound) this.sound.play("land", 1, 0.5);
       this.vy = 0;
       this.onGround = true;
       this.squashT = 0.14;
@@ -81,7 +87,7 @@ class King {
     if (this.onGround) {
       this.vy = this.jumpV;
       this.onGround = false;
-      if (this.sound) this.sound.play("jump", 1, 0.7);
+      if (this.sound) this.sound.play("jump", 1, 0.4);
     }
   }
 
