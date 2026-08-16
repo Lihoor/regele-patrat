@@ -13,27 +13,47 @@ class King {
     this.gravity = 1750;
     this.facing = 1;
     this.moving = false;
+    this.sprinting = false;
+    this.stamina = 100;
+    this.stepAcc = 0;
+    this.sound = null;
     this.time = 0;
     this.squashT = 0;
     this.walkT = 0;
   }
 
   update(dt, input, level, fx) {
-    this.moving = false;
+    this.moving = input.left || input.right;
+
+    this.sprinting = this.moving && input.sprint && this.stamina > 0;
+    if (this.sprinting) this.stamina = Math.max(0, this.stamina - 40 * dt);
+    else this.stamina = Math.min(100, this.stamina + 16 * dt);
+
+    const speed = this.sprinting ? this.speed * 1.7 : this.speed;
+
     if (input.left) {
-      this.x -= this.speed * dt;
+      this.x -= speed * dt;
       this.facing = -1;
-      this.moving = true;
     }
     if (input.right) {
-      this.x += this.speed * dt;
+      this.x += speed * dt;
       this.facing = 1;
-      this.moving = true;
     }
     this.x = Math.max(0, Math.min(level.width - this.w, this.x));
 
-    if (this.moving) this.walkT += dt * 11;
+    if (this.moving) this.walkT += dt * (this.sprinting ? 14.5 : 11);
     else this.walkT = 0;
+
+    if (this.moving) {
+      this.stepAcc += speed * dt;
+      const stride = this.sprinting ? 95 : 55;
+      if (this.stepAcc >= stride) {
+        this.stepAcc -= stride;
+        if (this.sound) this.sound.footstep(this.sprinting);
+      }
+    } else {
+      this.stepAcc = 0;
+    }
 
     if (input.consumeJump()) this.jump();
 
@@ -41,8 +61,10 @@ class King {
     this.y += this.vy * dt;
 
     if (this.y + this.h >= level.groundY) {
+      const wasAir = !this.onGround;
       this.y = level.groundY - this.h;
-      if (!this.onGround && fx) fx.burst(this.x + this.w / 2, level.groundY, 7);
+      if (wasAir && fx) fx.burst(this.x + this.w / 2, level.groundY, 7);
+      if (wasAir && this.sound) this.sound.play("land", 1, 0.85);
       this.vy = 0;
       this.onGround = true;
       this.squashT = 0.14;
@@ -59,6 +81,7 @@ class King {
     if (this.onGround) {
       this.vy = this.jumpV;
       this.onGround = false;
+      if (this.sound) this.sound.play("jump", 1, 0.7);
     }
   }
 
@@ -68,7 +91,7 @@ class King {
 
     const air = !this.onGround;
     let bob = 0;
-    if (this.moving) bob = Math.abs(Math.sin(this.walkT)) * 3.5;
+    if (this.moving) bob = Math.abs(Math.sin(this.walkT)) * 3.5 * (this.sprinting ? 1.5 : 1);
 
     const flutter = air ? Math.sin(this.time * 10) * 3 : Math.sin(this.time * 6) * 1.8;
 
@@ -76,7 +99,7 @@ class King {
     if (air) {
       rot = this.clamp(this.vy * 0.00006, -0.05, 0.05);
     } else if (this.moving) {
-      rot = Math.sin(this.walkT) * 0.02;
+      rot = Math.sin(this.walkT) * 0.02 * (this.sprinting ? 1.6 : 1);
     }
 
     const hAir = Math.max(0, level.groundY - by);
