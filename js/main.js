@@ -20,6 +20,8 @@ let inventory = null;
 let menu = null;
 let mouseX = 0, mouseY = 0;
 let gameStarted = false;
+let paused = false;
+let pauseState = "main";
 
 const dialogue = {
   active: false,
@@ -124,18 +126,12 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
-canvas.addEventListener("mousemove", (e) => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
-  if (menu) menu.handleMove(mouseX, mouseY);
-});
-canvas.addEventListener("mousedown", () => { if (menu) menu.handleDown(); });
-canvas.addEventListener("mouseup", () => { if (menu) menu.handleUp(); });
 canvas.addEventListener("click", (e) => {
   if (menu && menu.active) {
     menu.handleClick(e.clientX, e.clientY, W, H);
     return;
   }
+  if (paused) { handlePauseClick(e.clientX, e.clientY); return; }
   if (dialogue.active) { dialogue.advance(); return; }
 });
 
@@ -148,6 +144,18 @@ function frame(now) {
   if (menu && menu.active) {
     menu.draw(ctx, W, H);
     canvas.style.cursor = menu.getCursor();
+    requestAnimationFrame(frame);
+    return;
+  }
+
+  if (input.consumeEscape() && !dialogue.active && gameStarted) {
+    if (paused) { paused = false; pauseState = "main"; }
+    else { paused = true; pauseState = "main"; }
+  }
+
+  if (paused) {
+    canvas.style.cursor = "default";
+    drawPause(ctx, W, H);
     requestAnimationFrame(frame);
     return;
   }
@@ -269,5 +277,136 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
 }
+
+let pauseBtns = [];
+let pauseSliderDrag = false;
+
+function _pauseBtn(ctx, x, y, w, h, label, fn) {
+  pauseBtns.push({ x, y, w, h, fn });
+  const hover = mouseX >= x && mouseX <= x+w && mouseY >= y && mouseY <= y+h;
+  ctx.fillStyle = hover ? "rgba(50,40,20,0.85)" : "rgba(25,20,10,0.75)";
+  roundRect(ctx, x, y, w, h, 8);
+  ctx.fill();
+  ctx.strokeStyle = hover ? "#e8c84a" : "#b8922e";
+  ctx.lineWidth = hover ? 2.5 : 1.8;
+  roundRect(ctx, x, y, w, h, 8);
+  ctx.stroke();
+  ctx.fillStyle = hover ? "#fff8e0" : "#e8d8a0";
+  ctx.font = "bold 19px Georgia, serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(label, x + w/2, y + h/2 + 1);
+}
+
+function _pauseLangBtn(ctx, x, y, w, h, label, active, fn) {
+  pauseBtns.push({ x, y, w, h, fn });
+  ctx.fillStyle = active ? "rgba(100,80,30,0.85)" : "rgba(25,20,10,0.65)";
+  roundRect(ctx, x, y, w, h, 6);
+  ctx.fill();
+  ctx.strokeStyle = active ? "#e8c84a" : "rgba(180,146,46,0.4)";
+  ctx.lineWidth = active ? 2 : 1;
+  roundRect(ctx, x, y, w, h, 6);
+  ctx.stroke();
+  ctx.fillStyle = active ? "#fff8e0" : "#a09060";
+  ctx.font = (active ? "bold " : "") + "15px Georgia, serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(label, x + w/2, y + h/2);
+}
+
+function drawPause(ctx, W, H) {
+  pauseBtns = [];
+  const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
+
+  ctx.fillStyle = "rgba(0,0,0,0.65)";
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.fillStyle = "#c8b880";
+  ctx.font = "bold 36px Georgia, serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(L.pauseTitle || "PAUSED", W/2, H * 0.18);
+
+  if (pauseState === "main") {
+    const bw = 230, bh = 52;
+    _pauseBtn(ctx, W/2 - bw/2, H*0.30, bw, bh, L.play, () => { paused = false; });
+    _pauseBtn(ctx, W/2 - bw/2, H*0.42, bw, bh, L.settings, () => { pauseState = "settings"; });
+    _pauseBtn(ctx, W/2 - bw/2, H*0.54, bw, bh, L.returnToLobby, () => {
+      paused = false;
+      gameStarted = false;
+      menu.active = true;
+      pauseState = "main";
+    });
+  } else if (pauseState === "settings") {
+    ctx.fillStyle = "#a09060";
+    ctx.font = "16px Georgia, serif";
+    ctx.fillText(L.musicVolume, W/2, H*0.28);
+
+    const sx = W*0.28, sw = W*0.44, sh = 8;
+    const sy = H*0.34;
+    ctx.fillStyle = "rgba(25,20,10,0.7)";
+    roundRect(ctx, sx, sy - sh/2, sw, sh, 4);
+    ctx.fill();
+    ctx.fillStyle = "#b8922e";
+    roundRect(ctx, sx, sy - sh/2, sw * menu.volume, sh, 4);
+    ctx.fill();
+    ctx.fillStyle = "#e8d8a0";
+    ctx.beginPath();
+    ctx.arc(sx + sw * menu.volume, sy, 10, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = "#b8922e";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = "#a09060";
+    ctx.font = "14px Georgia, serif";
+    ctx.fillText(Math.round(menu.volume * 100) + "%", W/2, H*0.39);
+
+    ctx.fillStyle = "#a09060";
+    ctx.font = "16px Georgia, serif";
+    ctx.fillText(L.language, W/2, H*0.46);
+
+    const lbw = 130, lbh = 38, lby = H*0.50;
+    _pauseLangBtn(ctx, W/2 - lbw - 8, lby, lbw, lbh, L.langRO, menu.lang === "ro", () => { menu.lang = "ro"; });
+    _pauseLangBtn(ctx, W/2 + 8, lby, lbw, lbh, L.langEN, menu.lang === "en", () => { menu.lang = "en"; });
+
+    _pauseBtn(ctx, W/2 - 85, H*0.62, 170, 48, L.back, () => { pauseState = "main"; });
+  }
+}
+
+function handlePauseClick(x, y) {
+  for (const b of pauseBtns) {
+    if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) { b.fn(); return; }
+  }
+}
+
+function handlePauseMove(x, y) {
+  mouseX = x; mouseY = y;
+  if (pauseSliderDrag && pauseState === "settings") {
+    const sx = W * 0.28, sw = W * 0.44;
+    menu.volume = Math.max(0, Math.min(1, (x - sx) / sw));
+    menu.music.setVolume(menu.volume);
+  }
+}
+
+canvas.addEventListener("mousemove", (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+  if (menu) menu.handleMove(mouseX, mouseY);
+  if (paused) handlePauseMove(mouseX, mouseY);
+});
+canvas.addEventListener("mousedown", () => {
+  if (menu) menu.handleDown();
+  if (paused && pauseState === "settings") {
+    const sx = W * 0.28, sw = W * 0.44;
+    const sy = H * 0.34;
+    if (mouseX >= sx && mouseX <= sx + sw && mouseY >= sy - 16 && mouseY <= sy + 16) {
+      pauseSliderDrag = true;
+      const v = Math.max(0, Math.min(1, (mouseX - sx) / sw));
+      menu.volume = v;
+      menu.music.setVolume(v);
+    }
+  }
+});
+canvas.addEventListener("mouseup", () => { if (menu) menu.handleUp(); pauseSliderDrag = false; });
 
 requestAnimationFrame(frame);
