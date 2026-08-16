@@ -45,7 +45,7 @@ function buildWorld() {
     new Furniture("barrel", W * 0.90, level.groundY, 1.8),
   ];
 
-  chest = new Chest(W * 0.20, level.groundY, 1.5);
+  chest = new Chest(W * 0.20, level.groundY, 2.2);
   if (!inventory) inventory = new Inventory();
 
   dust = new Dust(W, H);
