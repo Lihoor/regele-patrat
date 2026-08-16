@@ -56,23 +56,26 @@ function frame(now) {
   for (const torch of torches) torch.update(dt);
   dust.update(dt, W, H);
 
-  const lights = [];
-  for (const torch of torches) lights.push(torch.lightInfo());
-  lights.push({
+  const torchLights = [];
+  for (const torch of torches) torchLights.push(torch.lightInfo());
+
+  const allLights = torchLights.slice();
+  allLights.push({
     x: king.x + king.w / 2,
-    y: level.groundY - king.h * 0.55,
-    r: Math.max(210, W * 0.14),
+    y: level.groundY - king.h * 0.5,
+    r: Math.max(250, W * 0.18),
   });
 
   wall.draw(ctx);
   level.draw(ctx);
   for (const torch of torches) torch.draw(ctx);
-  king.draw(ctx, level);
 
-  lighting.apply(ctx, W, H, lights);
-  lighting.glow(ctx, W, H, lights);
-  dust.draw(ctx);
+  lighting.apply(ctx, W, H, allLights);
+  lighting.glow(ctx, W, H, torchLights);
   lighting.vignette(ctx, W, H);
+  dust.draw(ctx);
+
+  king.draw(ctx, level);
 
   requestAnimationFrame(frame);
 }
