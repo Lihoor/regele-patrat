@@ -70,7 +70,7 @@ class King {
       const wasAir = !this.onGround;
       this.y = level.groundY - this.h;
       if (wasAir && fx) fx.burst(this.x + this.w / 2, level.groundY, 7);
-      if (wasAir && this.sound) this.sound.play("land", 1, 0.5);
+      if (wasAir && this.sound) this.sound.play("land", 1, 0.4);
       this.vy = 0;
       this.onGround = true;
       this.squashT = 0.14;
@@ -87,7 +87,7 @@ class King {
     if (this.onGround) {
       this.vy = this.jumpV;
       this.onGround = false;
-      if (this.sound) this.sound.play("jump", 1, 0.4);
+      if (this.sound) this.sound.play("jump", 1, 0.3);
     }
   }
 
