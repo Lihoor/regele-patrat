@@ -162,7 +162,7 @@ class King {
     const bot = top + hh;
 
     const faceGrad = ctx.createLinearGradient(0, top, 0, bot);
-    faceGrad.addColorStop(0, "#dcb894");
+    faceGrad.addColorStop(0, "#e0bf9c");
     faceGrad.addColorStop(1, "#b18963");
     ctx.fillStyle = faceGrad;
     ctx.strokeStyle = "rgba(40,26,15,0.6)";
@@ -178,17 +178,38 @@ class King {
     ctx.fillStyle = "rgba(0,0,0,0.14)";
     ctx.fillRect(-hw / 2, top, hw, 6);
 
-    ctx.fillStyle = "#3a2c1f";
+    ctx.fillStyle = "#33281c";
     ctx.beginPath();
-    ctx.moveTo(-hw / 2, bot - 6);
-    ctx.lineTo(-hw / 2, top);
-    ctx.lineTo(28, top);
-    ctx.quadraticCurveTo(42, top, 42, top + 6);
-    ctx.lineTo(36, top + 11);
-    ctx.quadraticCurveTo(18, top + 9, 2, top + 10);
-    ctx.lineTo(-28, top + 10);
+    ctx.moveTo(-hw / 2, bot - 7);
+    ctx.lineTo(-hw / 2, top - 1);
+    ctx.quadraticCurveTo(-28, top - 3, -8, top - 1);
+    ctx.lineTo(24, top - 1);
+    ctx.quadraticCurveTo(38, top, 40, top + 7);
+    ctx.lineTo(34, top + 13);
+    ctx.quadraticCurveTo(18, top + 10, 2, top + 11);
+    ctx.lineTo(-28, top + 11);
     ctx.closePath();
     ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(30, top + 9);
+    ctx.lineTo(36, top + 16);
+    ctx.lineTo(40, top + 9);
+    ctx.moveTo(18, top + 10);
+    ctx.lineTo(24, top + 17);
+    ctx.lineTo(29, top + 10);
+    ctx.moveTo(6, top + 11);
+    ctx.lineTo(11, top + 16);
+    ctx.lineTo(16, top + 11);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = "rgba(255,200,140,0.22)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-hw / 2 + 5, top + 3);
+    ctx.quadraticCurveTo(-6, top - 2, 30, top + 3);
+    ctx.stroke();
 
     ctx.fillStyle = "#c9a37f";
     ctx.beginPath();
@@ -199,105 +220,88 @@ class King {
     ctx.arc(-hw / 2 + 2, top + 23, 2.6, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = "#241f1b";
-    ctx.lineWidth = 2.6;
+    ctx.strokeStyle = "#1f1a16";
+    ctx.lineWidth = 3.2;
     ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(10, top + 14);
-    ctx.quadraticCurveTo(16, top + 15.5, 23, top + 14);
-    ctx.moveTo(-12, top + 15);
-    ctx.quadraticCurveTo(-8, top + 16.5, -5, top + 15);
-    ctx.stroke();
-
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.ellipse(16, top + 22, 6.5, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#5c6f8a";
-    ctx.beginPath();
-    ctx.arc(18, top + 22, 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#14161a";
-    ctx.beginPath();
-    ctx.arc(18, top + 22, 1.7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.arc(17, top + 21, 0.8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(30,26,22,0.8)";
-    ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.moveTo(9, top + 19);
-    ctx.quadraticCurveTo(16, top + 16, 23, top + 19);
+    ctx.quadraticCurveTo(16, top + 15.5, 24, top + 17);
+    ctx.moveTo(-12, top + 19.5);
+    ctx.lineTo(-8, top + 16.5);
+    ctx.lineTo(-4, top + 18);
     ctx.stroke();
 
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.ellipse(-8, top + 23, 3.2, 4.2, 0, 0, Math.PI * 2);
+    ctx.moveTo(9, top + 22.5);
+    ctx.quadraticCurveTo(15, top + 19.5, 23, top + 21.5);
+    ctx.quadraticCurveTo(19, top + 24.5, 9, top + 22.5);
+    ctx.closePath();
     ctx.fill();
     ctx.fillStyle = "#5c6f8a";
     ctx.beginPath();
-    ctx.arc(-8, top + 23, 1.9, 0, Math.PI * 2);
+    ctx.arc(16.5, top + 22, 2.9, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = "#14161a";
     ctx.beginPath();
-    ctx.arc(-8, top + 23, 1.1, 0, Math.PI * 2);
+    ctx.arc(16.5, top + 22, 1.6, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = "rgba(30,26,22,0.8)";
-    ctx.lineWidth = 1;
+    ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.moveTo(-11, top + 20);
-    ctx.quadraticCurveTo(-8, top + 18, -5, top + 20);
+    ctx.arc(15.6, top + 21, 0.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(30,26,22,0.55)";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(9, top + 22);
+    ctx.quadraticCurveTo(15, top + 19.5, 23, top + 21);
     ctx.stroke();
 
-    ctx.strokeStyle = "#9a7a5c";
-    ctx.lineWidth = 1.6;
-    ctx.lineCap = "round";
+    ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.moveTo(-4, top + 18);
-    ctx.quadraticCurveTo(12, top + 18, 20, top + 24);
-    ctx.quadraticCurveTo(26, top + 27, 26, top + 31);
-    ctx.lineTo(21, top + 31);
+    ctx.ellipse(-7, top + 23, 5, 3.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#5c6f8a";
+    ctx.beginPath();
+    ctx.arc(-7, top + 23, 2.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#14161a";
+    ctx.beginPath();
+    ctx.arc(-7, top + 23, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(30,26,22,0.55)";
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.moveTo(-10, top + 22.5);
+    ctx.quadraticCurveTo(-7, top + 20.5, -4, top + 22);
     ctx.stroke();
-    ctx.fillStyle = "rgba(90,60,40,0.28)";
-    ctx.beginPath();
-    ctx.arc(23, top + 31, 1.6, 0, Math.PI * 2);
-    ctx.fill();
 
-    ctx.fillStyle = "rgba(0,0,0,0.10)";
-    ctx.beginPath();
-    ctx.ellipse(14, top + 34, 12, 4, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = "#5a4636";
+    ctx.strokeStyle = "#7d5f43";
     ctx.lineWidth = 2;
     ctx.lineCap = "round";
     ctx.beginPath();
-    ctx.moveTo(8, top + 37);
-    ctx.quadraticCurveTo(15, top + 39, 23, top + 37);
+    ctx.moveTo(-2, top + 15);
+    ctx.quadraticCurveTo(12, top + 17, 18, top + 21);
+    ctx.lineTo(22, top + 26);
+    ctx.quadraticCurveTo(23, top + 29, 19, top + 29);
+    ctx.lineTo(16, top + 29);
     ctx.stroke();
-
-    ctx.fillStyle = "#3a2c1f";
+    ctx.fillStyle = "rgba(90,60,40,0.3)";
     ctx.beginPath();
-    ctx.moveTo(-28, top + 11);
-    ctx.quadraticCurveTo(-12, top + 5, 8, top + 7);
-    ctx.quadraticCurveTo(22, top + 8, 28, top + 9);
-    ctx.lineTo(31, top + 16);
-    ctx.lineTo(25, top + 10);
-    ctx.lineTo(21, top + 17);
-    ctx.lineTo(15, top + 10);
-    ctx.lineTo(10, top + 16);
-    ctx.lineTo(5, top + 10);
-    ctx.lineTo(-4, top + 12);
-    ctx.closePath();
+    ctx.ellipse(20, top + 28.5, 1.6, 1.1, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = "rgba(255,200,140,0.18)";
-    ctx.lineWidth = 1.4;
+    ctx.fillStyle = "rgba(0,0,0,0.08)";
     ctx.beginPath();
-    ctx.moveTo(-hw / 2 + 4, top + 4);
-    ctx.quadraticCurveTo(0, top - 1, 30, top + 3);
+    ctx.ellipse(14, top + 34, 13, 3.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = "#33271e";
+    ctx.lineWidth = 2.4;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(8, top + 37);
+    ctx.quadraticCurveTo(12, top + 38, 17, top + 37.5);
     ctx.stroke();
   }
 
@@ -305,67 +309,97 @@ class King {
     const top = -B + 44;
     const ch = 40;
 
-    const tun = ctx.createLinearGradient(0, top, 0, 0);
-    tun.addColorStop(0, "#512f63");
-    tun.addColorStop(1, "#2c1838");
-    ctx.fillStyle = tun;
-    ctx.strokeStyle = "rgba(0,0,0,0.5)";
+    const sk = ctx.createLinearGradient(0, top + 20, 0, 0);
+    sk.addColorStop(0, "#4a111a");
+    sk.addColorStop(1, "#26060a");
+    ctx.fillStyle = sk;
+    ctx.strokeStyle = "rgba(0,0,0,0.6)";
     ctx.lineWidth = 2;
+    this.roundRect(ctx, -42, top + 20, 84, 20, 5);
+    ctx.fill();
+    ctx.stroke();
 
-    this.roundRect(ctx, -42, top, 84, ch, 7);
+    ctx.strokeStyle = "#e0b83c";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-14, top + 24);
+    ctx.lineTo(-14, top + 37);
+    ctx.moveTo(14, top + 24);
+    ctx.lineTo(14, top + 37);
+    ctx.stroke();
+
+    ctx.fillStyle = "#e0b83c";
+    ctx.fillRect(-42, top + 36, 84, 2.5);
+
+    const mg = ctx.createLinearGradient(0, top, 0, top + 26);
+    mg.addColorStop(0, "#4a4a54");
+    mg.addColorStop(1, "#1e1e26");
+    ctx.fillStyle = mg;
+    ctx.strokeStyle = "rgba(0,0,0,0.75)";
+    ctx.lineWidth = 2;
+    this.roundRect(ctx, -42, top, 84, 26, 7);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = "#b18963";
     ctx.beginPath();
     ctx.moveTo(0, top);
-    ctx.lineTo(-13, top + 13);
-    ctx.lineTo(13, top + 13);
+    ctx.lineTo(-12, top + 9);
+    ctx.lineTo(12, top + 9);
     ctx.closePath();
     ctx.fill();
 
     ctx.strokeStyle = "#e0b83c";
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2.5;
     ctx.lineCap = "round";
     ctx.beginPath();
     ctx.moveTo(0, top);
-    ctx.lineTo(-13, top + 13);
+    ctx.lineTo(-12, top + 9);
     ctx.moveTo(0, top);
-    ctx.lineTo(13, top + 13);
+    ctx.lineTo(12, top + 9);
     ctx.stroke();
+
+    ctx.fillStyle = "#5a5a66";
+    ctx.strokeStyle = "#e0b83c";
+    ctx.lineWidth = 1.6;
+    this.roundRect(ctx, -47, top - 2, 16, 13, 5);
+    ctx.fill();
+    ctx.stroke();
+    this.roundRect(ctx, 31, top - 2, 16, 13, 5);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "rgba(255,255,255,0.12)";
+    this.roundRect(ctx, -45, top, 8, 7, 3);
+    ctx.fill();
+    this.roundRect(ctx, 33, top, 8, 7, 3);
+    ctx.fill();
 
     ctx.fillStyle = "#e0b83c";
     ctx.beginPath();
-    ctx.arc(0, top + 22, 6, 0, Math.PI * 2);
+    ctx.arc(0, top + 15, 6, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = "#8a6d1c";
+    ctx.strokeStyle = "#7d6114";
     ctx.lineWidth = 1.4;
     ctx.stroke();
     ctx.fillStyle = "#a8872c";
     ctx.beginPath();
-    ctx.arc(0, top + 22, 3.4, 0, Math.PI * 2);
+    ctx.arc(0, top + 15, 3.4, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = "#3c2f22";
-    ctx.fillRect(-42, top + 25, 84, 6);
+    ctx.fillStyle = "#2a1c12";
+    ctx.fillRect(-42, top + 24, 84, 6);
     ctx.fillStyle = "#c9a227";
-    ctx.fillRect(-42, top + 25, 84, 1.6);
+    ctx.fillRect(-42, top + 24, 84, 1.5);
 
     ctx.fillStyle = "#d9b23a";
-    this.roundRect(ctx, -6, top + 23.5, 12, 9, 2);
+    this.roundRect(ctx, -6, top + 23, 12, 8, 2);
     ctx.fill();
     ctx.strokeStyle = "#8a6d1c";
     ctx.lineWidth = 1;
-    this.roundRect(ctx, -6, top + 23.5, 12, 9, 2);
+    this.roundRect(ctx, -6, top + 23, 12, 8, 2);
     ctx.stroke();
     ctx.fillStyle = "#5d3d12";
-    ctx.fillRect(-2.5, top + 26.5, 5, 3);
-
-    ctx.fillStyle = "#e0b83c";
-    ctx.fillRect(-42, top + 34, 84, 2.5);
-
-    ctx.fillStyle = "rgba(255,255,255,0.07)";
-    ctx.fillRect(-42, top + 2, 84, 3);
+    ctx.fillRect(-2.5, top + 26, 5, 2.5);
   }
 
   drawCrown(ctx, W, B) {
