@@ -78,7 +78,7 @@ class King {
       sy = 1 - k * 0.18;
       sx = 1 + k * 0.16;
     } else {
-      bob = this.moving ? Math.abs(Math.sin(this.walkT)) * 3.5 : Math.sin(this.time * 3) * 1.3;
+      bob = this.moving ? Math.abs(Math.sin(this.walkT)) * 3.5 : 0;
     }
 
     const flutter = air ? Math.sin(this.time * 10) * 3 : Math.sin(this.time * 6) * 1.8;
