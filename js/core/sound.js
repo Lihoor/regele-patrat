@@ -12,7 +12,7 @@ class Sound {
     if (!AC) return;
     this.ctx = new AC();
     if (!window.fetch) return;
-    const names = ["step", "step_fast", "land", "jump"];
+    const names = ["step", "step_fast", "land", "jump", "creak"];
     for (let i = 0; i < names.length; i++) {
       const name = names[i];
       try {
