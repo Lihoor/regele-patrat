@@ -24,6 +24,8 @@ const LANG = {
     langRO: "Romana",
     langEN: "Engleza",
     dialogue: "Wow, ce s-a intamplat aici? De ce totul e asa vechi si prafuit? Doar am dormit si eu un pic...",
+    pauseTitle: "PAUZA",
+    returnToLobby: "INAPOI LA MENIU",
   },
   en: {
     title: "The Sleeping King",
@@ -50,6 +52,8 @@ const LANG = {
     langRO: "Romanian",
     langEN: "English",
     dialogue: "Wow, what happened here? Why is everything so old and dusty? I just slept for a bit...",
+    pauseTitle: "PAUSED",
+    returnToLobby: "RETURN TO MENU",
   },
 };
 
