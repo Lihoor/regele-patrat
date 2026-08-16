@@ -23,14 +23,35 @@ let gameStarted = false;
 let paused = false;
 let pauseState = "main";
 let sneezeTriggered = false;
+let currentRoom = 0;
+let knight = null;
+let npcTalked = false;
+let fadeAlpha = 0;
+let fadeDir = 0;
+let fadeCallback = null;
 
 const dialogue = {
   active: false,
   text: "",
+  lines: [],
+  currentLine: 0,
   shown: 0,
   timer: 0,
   speed: 35,
-  show(text) { this.active = true; this.text = text; this.shown = 0; this.timer = 0; },
+  show(textOrArray) {
+    this.active = true;
+    if (Array.isArray(textOrArray)) {
+      this.lines = textOrArray;
+      this.currentLine = 0;
+      this.text = textOrArray[0];
+    } else {
+      this.lines = [textOrArray];
+      this.currentLine = 0;
+      this.text = textOrArray;
+    }
+    this.shown = 0;
+    this.timer = 0;
+  },
   update(dt) {
     if (!this.active) return;
     this.timer += dt;
@@ -72,6 +93,13 @@ const dialogue = {
   advance() {
     if (!this.active) return false;
     if (this.shown < this.text.length) { this.shown = this.text.length; this.timer = this.text.length / this.speed + 1; return true; }
+    if (this.currentLine < this.lines.length - 1) {
+      this.currentLine++;
+      this.text = this.lines[this.currentLine];
+      this.shown = 0;
+      this.timer = 0;
+      return true;
+    }
     this.active = false; return true;
   }
 };
@@ -85,26 +113,45 @@ function buildWorld() {
   king.sound = sound;
   if (frac) king.x = frac * (W - king.w);
 
-  torches = [
-    new Torch(W * 0.12, level.groundY * 0.22, 2.0),
-    new Torch(W * 0.40, level.groundY * 0.34, 1.8),
-    new Torch(W * 0.68, level.groundY * 0.18, 2.1),
-    new Torch(W * 0.90, level.groundY * 0.30, 1.9),
-  ];
+  knight = new Knight(W * 0.78, level.groundY);
 
-  furniture = [
-    new Furniture("tapestry", W * 0.5, level.groundY * 0.05, 1.7),
-    new Furniture("throne", W * 0.07, level.groundY, 2.0),
-    new Furniture("table", W * 0.28, level.groundY, 1.8),
-    new Furniture("barrel", W * 0.50, level.groundY, 1.7),
-    new Furniture("barrel", W * 0.545, level.groundY, 1.35),
-    new Furniture("crate", W * 0.61, level.groundY, 1.8),
-    new Furniture("candelabra", W * 0.74, level.groundY, 1.9),
-    new Furniture("barrel", W * 0.90, level.groundY, 1.8),
-  ];
+  if (currentRoom === 0) {
+    torches = [
+      new Torch(W * 0.12, level.groundY * 0.22, 2.0),
+      new Torch(W * 0.40, level.groundY * 0.34, 1.8),
+      new Torch(W * 0.68, level.groundY * 0.18, 2.1),
+      new Torch(W * 0.90, level.groundY * 0.30, 1.9),
+    ];
+    furniture = [
+      new Furniture("tapestry", W * 0.5, level.groundY * 0.05, 1.7),
+      new Furniture("throne", W * 0.07, level.groundY, 2.0),
+      new Furniture("table", W * 0.28, level.groundY, 1.8),
+      new Furniture("barrel", W * 0.50, level.groundY, 1.7),
+      new Furniture("barrel", W * 0.545, level.groundY, 1.35),
+      new Furniture("crate", W * 0.61, level.groundY, 1.8),
+      new Furniture("candelabra", W * 0.74, level.groundY, 1.9),
+      new Furniture("barrel", W * 0.90, level.groundY, 1.8),
+    ];
+    chest = new Chest(W * 0.20, level.groundY, 2.2);
+    chest.sound = sound;
+  } else {
+    torches = [
+      new Torch(W * 0.10, level.groundY * 0.20, 2.0),
+      new Torch(W * 0.35, level.groundY * 0.30, 1.9),
+      new Torch(W * 0.55, level.groundY * 0.16, 2.1),
+      new Torch(W * 0.92, level.groundY * 0.28, 1.8),
+    ];
+    furniture = [
+      new Furniture("tapestry", W * 0.3, level.groundY * 0.04, 1.7),
+      new Furniture("barrel", W * 0.15, level.groundY, 1.7),
+      new Furniture("barrel", W * 0.20, level.groundY, 1.35),
+      new Furniture("crate", W * 0.40, level.groundY, 1.8),
+      new Furniture("candelabra", W * 0.55, level.groundY, 1.9),
+      new Furniture("barrel", W * 0.65, level.groundY, 1.5),
+    ];
+    chest = null;
+  }
 
-  chest = new Chest(W * 0.20, level.groundY, 2.2);
-  chest.sound = sound;
   if (!inventory) inventory = new Inventory();
 
   dust = new Dust(W, H);
@@ -182,17 +229,59 @@ function frame(now) {
 
   if (!dialogue.active) {
     king.update(dt, input, level, dust);
-    chest.update(dt, king.x, king.w);
+    if (currentRoom === 0 && chest) chest.update(dt, king.x, king.w);
+    if (currentRoom === 1 && knight) knight.update(dt, king.x, king.w);
+  }
+
+  if (!dialogue.active && !king.sleeping && !king.sneezing) {
+    if (king.x + king.w >= W - 2) {
+      fadeDir = 1;
+      fadeCallback = () => {
+        currentRoom = 1;
+        king.x = 2;
+        king.y = level.groundY - king.h;
+        buildWorld();
+        fadeDir = -1;
+      };
+    } else if (currentRoom === 1 && king.x <= 2) {
+      fadeDir = 1;
+      fadeCallback = () => {
+        currentRoom = 0;
+        king.x = W - king.w - 2;
+        king.y = level.groundY - king.h;
+        buildWorld();
+        fadeDir = -1;
+      };
+    }
+  }
+
+  if (fadeDir !== 0) {
+    fadeAlpha += fadeDir * dt * 3;
+    if (fadeDir === 1 && fadeAlpha >= 1) {
+      fadeAlpha = 1;
+      if (fadeCallback) { fadeCallback(); fadeCallback = null; }
+    }
+    if (fadeDir === -1 && fadeAlpha <= 0) {
+      fadeAlpha = 0;
+      fadeDir = 0;
+    }
   }
   for (const torch of torches) torch.update(dt);
   for (const f of furniture) f.update(dt);
   dust.update(dt, W, H);
 
   if (input.consumeInteract()) {
-    const result = chest.interact();
-    if (result === "sword") inventory.add("sword");
+    if (currentRoom === 0 && chest) {
+      const result = chest.interact();
+      if (result === "sword") inventory.add("sword");
+    }
+    if (currentRoom === 1 && knight && knight.promptAlpha > 0.5 && !npcTalked) {
+      npcTalked = true;
+      const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
+      dialogue.show(L.knightDialogue);
+    }
   }
-  if (!sneezeTriggered && chest.state !== "closed" && king.x > W * 0.78 && !king.sneezing && !king.sleeping) {
+  if (!sneezeTriggered && chest && chest.state !== "closed" && king.x > W * 0.78 && !king.sneezing && !king.sleeping) {
     sneezeTriggered = true;
     king.sneezing = true;
     king.sneezeTimer = 0;
@@ -210,8 +299,10 @@ function frame(now) {
     const l = f.lightInfo();
     if (l) torchLights.push(l);
   }
-  const chestLight = chest.lightInfo();
-  if (chestLight) torchLights.push(chestLight);
+  if (chest) {
+    const chestLight = chest.lightInfo();
+    if (chestLight) torchLights.push(chestLight);
+  }
 
   const allLights = torchLights.slice();
   allLights.push({
@@ -223,7 +314,7 @@ function frame(now) {
   wall.draw(ctx);
   level.draw(ctx);
   for (const f of furniture) f.draw(ctx);
-  chest.drawBody(ctx);
+  if (chest) chest.drawBody(ctx);
 
   lighting.apply(ctx, W, H, allLights);
   lighting.glow(ctx, W, H, torchLights);
@@ -231,16 +322,22 @@ function frame(now) {
   dust.draw(ctx);
   lighting.vignette(ctx, W, H);
 
-  chest.drawGlow(ctx);
+  if (chest) chest.drawGlow(ctx);
+  if (currentRoom === 1 && knight) knight.draw(ctx);
   king.draw(ctx, level);
 
   dialogue.update(dt);
   dialogue.draw(ctx, W, H);
 
-  chest.drawHUD(ctx);
+  if (currentRoom === 0 && chest) chest.drawHUD(ctx);
   inventory.draw(ctx, W, H);
 
   drawStamina(ctx);
+
+  if (fadeAlpha > 0) {
+    ctx.fillStyle = `rgba(0,0,0,${fadeAlpha.toFixed(2)})`;
+    ctx.fillRect(0, 0, W, H);
+  }
 
   requestAnimationFrame(frame);
 }
@@ -349,6 +446,8 @@ function drawPause(ctx, W, H) {
       gameStarted = false;
       dialogue.active = false;
       sneezeTriggered = false;
+      currentRoom = 0;
+      npcTalked = false;
       inventory = null;
       buildWorld();
       pauseState = "main";
