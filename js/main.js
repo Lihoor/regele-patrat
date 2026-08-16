@@ -17,6 +17,8 @@ let dust = null;
 let king = null;
 let chest = null;
 let inventory = null;
+let menu = null;
+let mouseX = 0, mouseY = 0;
 
 function buildWorld() {
   level = new Floor(W, H);
@@ -51,6 +53,7 @@ function buildWorld() {
 
   dust = new Dust(W, H);
   if (!lighting) lighting = new Lighting();
+  if (!menu) menu = new Menu(W, H);
 }
 
 function resize() {
@@ -68,11 +71,35 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
+canvas.addEventListener("mousemove", (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+  if (menu) menu.handleMove(mouseX, mouseY);
+});
+canvas.addEventListener("mousedown", () => { if (menu) menu.handleDown(); });
+canvas.addEventListener("mouseup", () => { if (menu) menu.handleUp(); });
+canvas.addEventListener("click", (e) => {
+  if (menu && menu.active) {
+    menu.handleClick(e.clientX, e.clientY, W, H);
+  }
+});
+
 let last = performance.now();
 
 function frame(now) {
   const dt = Math.min((now - last) / 1000, 0.05);
   last = now;
+
+  if (menu && menu.active) {
+    menu.draw(ctx, W, H);
+    canvas.style.cursor = menu.getCursor();
+    requestAnimationFrame(frame);
+    return;
+  }
+  canvas.style.cursor = "default";
+
+  if (menu && menu.music) menu.music.update(dt);
+  sound.unlock();
 
   king.update(dt, input, level, dust);
   chest.update(dt, king.x, king.w);
