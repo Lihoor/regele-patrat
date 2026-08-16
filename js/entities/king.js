@@ -67,19 +67,8 @@ class King {
     const by = this.y + this.h;
 
     const air = !this.onGround;
-    let sx = 1, sy = 1, bob = 0;
-
-    if (air) {
-      const k = Math.min(1, Math.abs(this.vy) / 2200);
-      sy = 1 + k * 0.16;
-      sx = 1 - k * 0.12;
-    } else if (this.squashT > 0) {
-      const k = Math.max(0, this.squashT / 0.14);
-      sy = 1 - k * 0.18;
-      sx = 1 + k * 0.16;
-    } else {
-      bob = this.moving ? Math.abs(Math.sin(this.walkT)) * 3.5 : 0;
-    }
+    let bob = 0;
+    if (this.moving) bob = Math.abs(Math.sin(this.walkT)) * 3.5;
 
     const flutter = air ? Math.sin(this.time * 10) * 3 : Math.sin(this.time * 6) * 1.8;
 
@@ -101,7 +90,7 @@ class King {
     ctx.save();
     ctx.translate(bx, by - bob);
     ctx.rotate(rot);
-    ctx.scale(sx * s, sy * s);
+    ctx.scale(s, s);
 
     const W = 84;
     const B = 84;
@@ -210,7 +199,17 @@ class King {
     ctx.strokeStyle = "rgba(40,26,15,0.6)";
     ctx.lineWidth = 2;
 
-    this.roundRect(ctx, -hw / 2, top, hw, hh, 8);
+    ctx.beginPath();
+    ctx.moveTo(-hw / 2 + 14, top);
+    ctx.lineTo(hw / 2 - 14, top);
+    ctx.arcTo(hw / 2, top, hw / 2, top + 14, 14);
+    ctx.lineTo(hw / 2, bot - 7);
+    ctx.arcTo(hw / 2, bot, hw / 2 - 7, bot, 7);
+    ctx.lineTo(-hw / 2 + 7, bot);
+    ctx.arcTo(-hw / 2, bot, -hw / 2, bot - 7, 7);
+    ctx.lineTo(-hw / 2, top + 14);
+    ctx.arcTo(-hw / 2, top, -hw / 2 + 14, top, 14);
+    ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
@@ -421,16 +420,16 @@ class King {
     ctx.fillStyle = "#5a5a66";
     ctx.strokeStyle = "#e0b83c";
     ctx.lineWidth = 1.6;
-    this.roundRect(ctx, -47, top - 2, 16, 13, 5);
+    this.roundRect(ctx, -42, top - 2, 14, 13, 5);
     ctx.fill();
     ctx.stroke();
-    this.roundRect(ctx, 31, top - 2, 16, 13, 5);
+    this.roundRect(ctx, 28, top - 2, 14, 13, 5);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = "rgba(255,255,255,0.12)";
-    this.roundRect(ctx, -45, top, 8, 7, 3);
+    this.roundRect(ctx, -40, top, 7, 7, 3);
     ctx.fill();
-    this.roundRect(ctx, 33, top, 8, 7, 3);
+    this.roundRect(ctx, 33, top, 7, 7, 3);
     ctx.fill();
 
     ctx.fillStyle = "#e0b83c";
