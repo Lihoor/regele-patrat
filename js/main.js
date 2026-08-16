@@ -8,6 +8,7 @@ let H = 0;
 let level = null;
 let wall = null;
 let torches = [];
+let furniture = [];
 let lighting = null;
 let dust = null;
 let king = null;
@@ -25,6 +26,17 @@ function buildWorld() {
     new Torch(W * 0.40, level.groundY * 0.34, 0.92),
     new Torch(W * 0.68, level.groundY * 0.18, 1.06),
     new Torch(W * 0.90, level.groundY * 0.30, 0.9),
+  ];
+
+  furniture = [
+    new Furniture("tapestry", W * 0.5, level.groundY * 0.08, 1),
+    new Furniture("throne", W * 0.07, level.groundY, 1),
+    new Furniture("table", W * 0.28, level.groundY, 1),
+    new Furniture("barrel", W * 0.50, level.groundY, 0.95),
+    new Furniture("barrel", W * 0.545, level.groundY, 0.7),
+    new Furniture("crate", W * 0.61, level.groundY, 1),
+    new Furniture("candelabra", W * 0.74, level.groundY, 1),
+    new Furniture("barrel", W * 0.90, level.groundY, 1),
   ];
 
   dust = new Dust(W, H);
@@ -54,10 +66,15 @@ function frame(now) {
 
   king.update(dt, input, level, dust);
   for (const torch of torches) torch.update(dt);
+  for (const f of furniture) f.update(dt);
   dust.update(dt, W, H);
 
   const torchLights = [];
   for (const torch of torches) torchLights.push(torch.lightInfo());
+  for (const f of furniture) {
+    const l = f.lightInfo();
+    if (l) torchLights.push(l);
+  }
 
   const allLights = torchLights.slice();
   allLights.push({
@@ -68,6 +85,7 @@ function frame(now) {
 
   wall.draw(ctx);
   level.draw(ctx);
+  for (const f of furniture) f.draw(ctx);
 
   lighting.apply(ctx, W, H, allLights);
   lighting.glow(ctx, W, H, torchLights);
