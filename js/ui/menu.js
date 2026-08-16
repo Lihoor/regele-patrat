@@ -23,6 +23,7 @@ const LANG = {
     adventure: "O Aventura Medievala Patrata",
     langRO: "Romana",
     langEN: "Engleza",
+    dialogue: "Wow, ce s-a intamplat aici? De ce totul e asa vechi si prafuit? Doar am dormit si eu un pic...",
   },
   en: {
     title: "The Sleeping King",
@@ -48,6 +49,7 @@ const LANG = {
     adventure: "A Medieval Square Adventure",
     langRO: "Romanian",
     langEN: "English",
+    dialogue: "Wow, what happened here? Why is everything so old and dusty? I just slept for a bit...",
   },
 };
 
