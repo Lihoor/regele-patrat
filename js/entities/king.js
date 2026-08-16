@@ -26,6 +26,8 @@ class King {
     this.sleepTimer = 0;
     this.sleepProgress = 1;
     this.onWakeUp = null;
+    this.sneezing = false;
+    this.sneezeTimer = 0;
   }
 
   update(dt, input, level, fx) {
@@ -40,6 +42,13 @@ class King {
         this.sleeping = false;
         if (this.onWakeUp) this.onWakeUp();
       }
+      this.time += dt;
+      return;
+    }
+
+    if (this.sneezing) {
+      this.sneezeTimer += dt;
+      if (this.sneezeTimer > 0.6) { this.sneezing = false; this.sneezeTimer = 0; }
       this.time += dt;
       return;
     }
@@ -153,6 +162,31 @@ class King {
         ctx.restore();
       }
 
+      return;
+    }
+
+    if (this.sneezing) {
+      const sp = Math.min(1, this.sneezeTimer / 0.6);
+      const shake = sp < 0.5 ? Math.sin(sp * Math.PI * 8) * 5 : 0;
+      const leanBack = sp < 0.35 ? sp / 0.35 * 0.18 : Math.max(0, (0.6 - sp) / 0.25) * 0.18;
+      const sk = this.clamp(1, 0.25, 1);
+      this.drawShadow(ctx, bx, level.groundY, sk);
+      const s = this.bodyH / 84;
+      ctx.save();
+      ctx.translate(bx + shake, by);
+      ctx.rotate(-leanBack);
+      ctx.scale(s, s);
+      const W = 84, B = 84;
+      const flutter = Math.sin(this.time * 8) * 3;
+      this.drawCape(ctx, W, B, flutter);
+      ctx.save();
+      ctx.scale(this.facing, 1);
+      this.drawHead(ctx, W, B, false, 0);
+      this.drawClothes(ctx, W, B);
+      this.drawLegs(ctx, 0);
+      this.drawCrown(ctx, W, B, 0);
+      ctx.restore();
+      ctx.restore();
       return;
     }
 
