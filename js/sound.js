@@ -41,6 +41,6 @@ class Sound {
   }
 
   footstep(sprint) {
-    this.play(sprint ? "step_fast" : "step", sprint ? 1 : 1, sprint ? 0.6 : 0.55);
+    this.play(sprint ? "step_fast" : "step", 1, sprint ? 0.3 : 0.35);
   }
 }
