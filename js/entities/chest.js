@@ -9,6 +9,7 @@ class Chest {
     this.t = 0;
     this.near = false;
     this.promptAlpha = 0;
+    this.sound = null;
   }
 
   update(dt, kingX, kingW) {
@@ -43,6 +44,7 @@ class Chest {
   interact() {
     if (this.state === "closed" && this.near) {
       this.state = "opening";
+      if (this.sound) this.sound.play("creak", 1, 0.7);
       return null;
     }
     if (this.state === "sword_out" && this.near) {
@@ -172,6 +174,40 @@ class Chest {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("E", promptX, promptY + 1);
+    ctx.restore();
+  }
+
+  drawGlow(ctx) {
+    if (this.state === "picked") return;
+    const sc = this.scale;
+    const f = 0.82 + Math.sin(this.t * 5) * 0.12 + Math.sin(this.t * 8) * 0.06;
+    const intensity = this.state === "closed" ? 0.25 : 0.5;
+    const r = 85 * sc * f;
+    const cx = this.x;
+    const cy = this.y - 20 * sc;
+
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    g.addColorStop(0, `rgba(255,200,80,${0.18 * intensity * f})`);
+    g.addColorStop(0.4, `rgba(255,160,50,${0.10 * intensity * f})`);
+    g.addColorStop(1, "rgba(255,120,30,0)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (this.state !== "closed") {
+      const r2 = 45 * sc * f;
+      const cy2 = this.y - 55 * sc;
+      const g2 = ctx.createRadialGradient(cx, cy2, 0, cx, cy2, r2);
+      g2.addColorStop(0, `rgba(200,220,255,${0.12 * f})`);
+      g2.addColorStop(1, "rgba(180,200,255,0)");
+      ctx.fillStyle = g2;
+      ctx.beginPath();
+      ctx.arc(cx, cy2, r2, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
   }
 }
