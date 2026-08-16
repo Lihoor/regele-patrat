@@ -18,6 +18,7 @@ class King {
     this.sprintBlocked = false;
     this.stepAcc = 0;
     this.sound = null;
+    this.heldItem = null;
     this.time = 0;
     this.squashT = 0;
     this.walkT = 0;
@@ -130,6 +131,14 @@ class King {
     this.drawClothes(ctx, W, B);
     this.drawLegs(ctx, leg);
     this.drawCrown(ctx, W, B);
+
+    if (this.heldItem === "sword") {
+      const handX = 38;
+      const handY = -28;
+      const swing = this.moving ? Math.sin(this.walkT) * 0.12 : 0;
+      drawSword(ctx, handX, handY, 1.1, -0.25 + swing);
+    }
+
     ctx.restore();
 
     ctx.restore();
