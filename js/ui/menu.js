@@ -27,6 +27,13 @@ const LANG = {
     pauseTitle: "PAUZA",
     returnToLobby: "INAPOI LA MENIU",
     restart: "RESTART",
+    knightDialogue: [
+      "Rege: Dar ce s-a intamplat aici? De ce totul e asa vechi si prafuit?",
+      "Cavalerul: Ati dormit 30 de ani, Maiestate. Multe s-au schimbat.",
+      "Cavalerul: Sunt ultimul cavaler al acestui regat.",
+      "Cavalerul: Regatul este acum acaparat de oameni ai intunericului.",
+      "Cavalerul: Treziti-va, Majestate. Regatul are nevoie de voi."
+    ],
   },
   en: {
     title: "The Sleeping King",
@@ -56,6 +63,13 @@ const LANG = {
     pauseTitle: "PAUSED",
     returnToLobby: "RETURN TO MENU",
     restart: "RESTART",
+    knightDialogue: [
+      "King: What happened here? Why is everything so old and dusty?",
+      "Knight: You slept 30 years, Your Majesty. Many things have changed.",
+      "Knight: I am the last knight of this kingdom.",
+      "Knight: The kingdom is now overrun by servants of darkness.",
+      "Knight: Wake up, Your Majesty. The kingdom needs you."
+    ],
   },
 };
 
