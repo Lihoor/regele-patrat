@@ -22,6 +22,7 @@ let mouseX = 0, mouseY = 0;
 let gameStarted = false;
 let paused = false;
 let pauseState = "main";
+let sneezeTriggered = false;
 
 const dialogue = {
   active: false,
@@ -70,7 +71,7 @@ const dialogue = {
   },
   advance() {
     if (!this.active) return false;
-    if (this.shown < this.text.length) { this.shown = this.text.length; return true; }
+    if (this.shown < this.text.length) { this.shown = this.text.length; this.timer = this.text.length / this.speed + 1; return true; }
     this.active = false; return true;
   }
 };
@@ -190,6 +191,12 @@ function frame(now) {
   if (input.consumeInteract()) {
     const result = chest.interact();
     if (result === "sword") inventory.add("sword");
+  }
+  if (!sneezeTriggered && chest.state !== "closed" && king.x > W * 0.78 && !king.sneezing && !king.sleeping) {
+    sneezeTriggered = true;
+    king.sneezing = true;
+    king.sneezeTimer = 0;
+    sound.play("sneeze", 1, 0.5);
   }
   const eq = input.consumeEquip();
   if (eq >= 0) {
@@ -341,6 +348,7 @@ function drawPause(ctx, W, H) {
       paused = false;
       gameStarted = false;
       dialogue.active = false;
+      sneezeTriggered = false;
       inventory = null;
       buildWorld();
       pauseState = "main";
