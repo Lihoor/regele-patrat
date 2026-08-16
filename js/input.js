@@ -2,6 +2,7 @@ class Input {
   constructor() {
     this.left = false;
     this.right = false;
+    this.sprint = false;
     this._jumpQueued = false;
 
     window.addEventListener("keydown", (e) => this.onKey(e, true));
@@ -16,6 +17,9 @@ class Input {
     if (e.code === "KeyD" || e.code === "ArrowRight") {
       e.preventDefault();
       this.right = down;
+    }
+    if (e.code === "ShiftLeft" || e.code === "ShiftRight") {
+      this.sprint = down;
     }
     if (e.code === "Space" || e.code === "ArrowUp") {
       e.preventDefault();
