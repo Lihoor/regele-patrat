@@ -333,7 +333,7 @@ function drawPause(ctx, W, H) {
     _pauseBtn(ctx, W/2 - bw/2, H*0.42, bw, bh, L.settings, () => { pauseState = "settings"; });
     _pauseBtn(ctx, W/2 - bw/2, H*0.54, bw, bh, L.returnToLobby, () => {
       paused = false;
-      gameStarted = false;
+      dialogue.active = false;
       menu.active = true;
       pauseState = "main";
     });
