@@ -46,6 +46,7 @@ function buildWorld() {
   ];
 
   chest = new Chest(W * 0.20, level.groundY, 2.2);
+  chest.sound = sound;
   if (!inventory) inventory = new Inventory();
 
   dust = new Dust(W, H);
@@ -116,6 +117,7 @@ function frame(now) {
   dust.draw(ctx);
   lighting.vignette(ctx, W, H);
 
+  chest.drawGlow(ctx);
   king.draw(ctx, level);
 
   chest.drawHUD(ctx);
