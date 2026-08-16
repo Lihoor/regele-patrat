@@ -337,6 +337,14 @@ function drawPause(ctx, W, H) {
       menu.active = true;
       pauseState = "main";
     });
+    _pauseBtn(ctx, W/2 - bw/2, H*0.66, bw, bh, L.restart, () => {
+      paused = false;
+      gameStarted = false;
+      dialogue.active = false;
+      inventory = null;
+      buildWorld();
+      pauseState = "main";
+    });
   } else if (pauseState === "settings") {
     ctx.fillStyle = "#a09060";
     ctx.font = "16px Georgia, serif";
