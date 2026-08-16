@@ -1,8 +1,8 @@
 class King {
   constructor(level, width) {
-    this.w = 84;
-    this.bodyH = 84;
-    this.crownH = 18;
+    this.w = 108;
+    this.bodyH = 108;
+    this.crownH = 23;
     this.h = this.bodyH + this.crownH;
     this.x = (width - this.w) / 2;
     this.y = level.groundY - this.h;
@@ -15,6 +15,7 @@ class King {
     this.moving = false;
     this.time = 0;
     this.squashT = 0;
+    this.walkT = 0;
   }
 
   update(dt, input, level, fx) {
@@ -30,6 +31,9 @@ class King {
       this.moving = true;
     }
     this.x = Math.max(0, Math.min(level.width - this.w, this.x));
+
+    if (this.moving) this.walkT += dt * 11;
+    else this.walkT = 0;
 
     if (input.consumeJump()) this.jump();
 
@@ -74,23 +78,33 @@ class King {
       sy = 1 - k * 0.18;
       sx = 1 + k * 0.16;
     } else {
-      bob = this.moving ? Math.abs(Math.sin(this.time * 12)) * 3 : Math.sin(this.time * 3) * 1.3;
+      bob = this.moving ? Math.abs(Math.sin(this.walkT)) * 3.5 : Math.sin(this.time * 3) * 1.3;
     }
 
     const flutter = air ? Math.sin(this.time * 10) * 3 : Math.sin(this.time * 6) * 1.8;
-    const rot = air ? this.clamp(this.vy * 0.00006, -0.05, 0.05) : 0;
+
+    let rot = 0;
+    if (air) {
+      rot = this.clamp(this.vy * 0.00006, -0.05, 0.05);
+    } else if (this.moving) {
+      rot = Math.sin(this.walkT) * 0.02;
+    }
 
     const hAir = Math.max(0, level.groundY - by);
     const sk = this.clamp(1 - hAir / 320, 0.25, 1);
 
     this.drawShadow(ctx, bx, level.groundY, sk);
 
+    const s = this.bodyH / 84;
+    const leg = this.moving ? Math.sin(this.walkT) : 0;
+
     ctx.save();
     ctx.translate(bx, by - bob);
     ctx.rotate(rot);
+    ctx.scale(sx * s, sy * s);
 
-    const W = this.w;
-    const B = this.bodyH;
+    const W = 84;
+    const B = 84;
 
     this.drawCape(ctx, W, B, flutter);
 
@@ -98,6 +112,7 @@ class King {
     ctx.scale(this.facing, 1);
     this.drawHead(ctx, W, B);
     this.drawClothes(ctx, W, B);
+    this.drawLegs(ctx, leg);
     this.drawCrown(ctx, W, B);
     ctx.restore();
 
@@ -120,37 +135,64 @@ class King {
     ctx.save();
     ctx.translate(backOff, 0);
 
-    const g = ctx.createLinearGradient(0, -B, 0, 0);
-    g.addColorStop(0, "#6a141a");
-    g.addColorStop(1, "#2f080b");
+    const time = this.time;
+    const moving = this.moving;
+    const amp = (moving ? 4 : 2) + Math.abs(flutter);
+    const sway = Math.sin(time * 5.5) * (moving ? 4 : 2.2);
+    const shY = -B + 44;
+
+    const g = ctx.createLinearGradient(0, shY, 0, -4);
+    g.addColorStop(0, "#7d1c22");
+    g.addColorStop(0.5, "#551018");
+    g.addColorStop(1, "#2c070a");
     ctx.fillStyle = g;
-
-    ctx.beginPath();
-    ctx.moveTo(-W / 2 + 8, -B + 6);
-    ctx.lineTo(-W / 2 - 14, -B + 12);
-    ctx.quadraticCurveTo(-W / 2 - 20, -B + 30 + flutter, -W / 2 - 15, -B + 44);
-    ctx.lineTo(-W / 2 - 12, -10);
-
-    let x = -W / 2 - 12;
-    while (x < W / 2 - 12) {
-      x = Math.min(x + 7, W / 2 - 4);
-      ctx.lineTo(x, -15);
-      x = Math.min(x + 7, W / 2 - 4);
-      ctx.lineTo(x, -9);
-    }
-
-    ctx.lineTo(W / 2 + 15, -B + 44);
-    ctx.quadraticCurveTo(W / 2 + 20, -B + 30 + flutter, W / 2 + 14, -B + 12);
-    ctx.lineTo(W / 2 - 8, -B + 6);
-    ctx.closePath();
-    ctx.fill();
-
     ctx.strokeStyle = "rgba(0,0,0,0.5)";
     ctx.lineWidth = 1.5;
+
+    const x0 = -W / 2 - 14;
+    const x1 = W / 2 + 14;
+    const segs = 8;
+
+    ctx.beginPath();
+    ctx.moveTo(-W / 2 + 6, shY - 4);
+    ctx.quadraticCurveTo(x0, shY + 10, x0 + 3, -16 + sway);
+    for (let i = 0; i <= segs; i++) {
+      const t = i / segs;
+      const x = x0 + t * (x1 - x0);
+      const y = -16 + Math.sin(time * 7 + i * 1.5) * amp + sway * (1 - Math.abs(t - 0.5) * 1.4);
+      ctx.lineTo(x, y);
+    }
+    ctx.quadraticCurveTo(x1, shY + 10, W / 2 - 6, shY - 4);
+    ctx.closePath();
+    ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = "rgba(255,255,255,0.07)";
-    ctx.fillRect(-W / 2 - 14, -B + 12, 4, B * 0.55);
+    ctx.strokeStyle = "rgba(0,0,0,0.22)";
+    ctx.lineWidth = 1.2;
+    for (let i = 1; i < segs; i++) {
+      const t = i / segs;
+      const x = x0 + t * (x1 - x0);
+      const y = -16 + Math.sin(time * 7 + i * 1.5) * amp + sway * (1 - Math.abs(t - 0.5) * 1.4);
+      ctx.beginPath();
+      ctx.moveTo(x, shY + 2);
+      ctx.lineTo(x, y - 8);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = "#eae2d2";
+    ctx.beginPath();
+    ctx.moveTo(-26, shY - 4);
+    ctx.quadraticCurveTo(-18, shY - 10, -6, shY - 6);
+    ctx.quadraticCurveTo(2, shY - 12, 10, shY - 6);
+    ctx.quadraticCurveTo(20, shY - 10, 26, shY - 4);
+    ctx.quadraticCurveTo(14, shY + 2, 6, shY - 1);
+    ctx.quadraticCurveTo(0, shY + 3, -6, shY - 1);
+    ctx.quadraticCurveTo(-14, shY + 2, -26, shY - 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "rgba(0,0,0,0.22)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
 
     ctx.restore();
   }
@@ -400,6 +442,47 @@ class King {
     ctx.stroke();
     ctx.fillStyle = "#5d3d12";
     ctx.fillRect(-2.5, top + 26, 5, 2.5);
+
+    ctx.save();
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.fillStyle = "#000";
+    ctx.beginPath();
+    ctx.moveTo(-6, -1);
+    ctx.lineTo(-4, -16);
+    ctx.quadraticCurveTo(0, -19, 4, -16);
+    ctx.lineTo(6, -1);
+    ctx.quadraticCurveTo(0, 1, -6, -1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  drawLegs(ctx, leg) {
+    const a = leg;
+    this.drawLeg(ctx, -13, -a * 5, a * 0.07, 0.9, true);
+    this.drawLeg(ctx, 13, a * 5, -a * 0.07, 1, false);
+  }
+
+  drawLeg(ctx, cx, stride, rot, sc, far) {
+    ctx.save();
+    ctx.translate(cx + stride, -16);
+    ctx.rotate(rot);
+    ctx.scale(sc, sc);
+    ctx.fillStyle = far ? "#23232b" : "#303038";
+    this.roundRect(ctx, -8, -6, 16, 13, 5);
+    ctx.fill();
+    ctx.fillStyle = far ? "#1b1b21" : "#24242b";
+    this.roundRect(ctx, -8, 4, 16, 7, 3);
+    ctx.fill();
+    ctx.fillStyle = far ? "#14141a" : "#19191f";
+    this.roundRect(ctx, -9, 8, 19, 9, 3);
+    ctx.fill();
+    ctx.fillStyle = "#c9a227";
+    this.roundRect(ctx, -9, 14, 19, 2.5, 1);
+    ctx.fill();
+    ctx.fillStyle = "#d9b23a";
+    ctx.fillRect(-8, 4, 16, 1.2);
+    ctx.restore();
   }
 
   drawCrown(ctx, W, B) {
