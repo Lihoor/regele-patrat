@@ -22,21 +22,21 @@ function buildWorld() {
   if (frac) king.x = frac * (W - king.w);
 
   torches = [
-    new Torch(W * 0.12, level.groundY * 0.22, 1),
-    new Torch(W * 0.40, level.groundY * 0.34, 0.92),
-    new Torch(W * 0.68, level.groundY * 0.18, 1.06),
-    new Torch(W * 0.90, level.groundY * 0.30, 0.9),
+    new Torch(W * 0.12, level.groundY * 0.22, 1.6),
+    new Torch(W * 0.40, level.groundY * 0.34, 1.45),
+    new Torch(W * 0.68, level.groundY * 0.18, 1.7),
+    new Torch(W * 0.90, level.groundY * 0.30, 1.5),
   ];
 
   furniture = [
-    new Furniture("tapestry", W * 0.5, level.groundY * 0.06, 1.3),
-    new Furniture("throne", W * 0.07, level.groundY, 1.5),
-    new Furniture("table", W * 0.28, level.groundY, 1.35),
-    new Furniture("barrel", W * 0.50, level.groundY, 1.25),
-    new Furniture("barrel", W * 0.545, level.groundY, 0.95),
-    new Furniture("crate", W * 0.61, level.groundY, 1.35),
-    new Furniture("candelabra", W * 0.74, level.groundY, 1.4),
-    new Furniture("barrel", W * 0.90, level.groundY, 1.35),
+    new Furniture("tapestry", W * 0.5, level.groundY * 0.05, 1.5),
+    new Furniture("throne", W * 0.07, level.groundY, 1.7),
+    new Furniture("table", W * 0.28, level.groundY, 1.5),
+    new Furniture("barrel", W * 0.50, level.groundY, 1.4),
+    new Furniture("barrel", W * 0.545, level.groundY, 1.1),
+    new Furniture("crate", W * 0.61, level.groundY, 1.5),
+    new Furniture("candelabra", W * 0.74, level.groundY, 1.6),
+    new Furniture("barrel", W * 0.90, level.groundY, 1.5),
   ];
 
   dust = new Dust(W, H);
