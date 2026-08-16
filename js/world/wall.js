@@ -7,6 +7,7 @@ class StoneWall {
     this.width = width;
     this.height = height;
     this.stones = [];
+    this.shades = [];
     let y = -70;
     let row = 0;
     while (y < height + 70) {
@@ -36,6 +37,15 @@ class StoneWall {
       }
       y += rowH;
       row++;
+    }
+    for (let i = 0; i < 14; i++) {
+      this.shades.push({
+        x: (i * 197 + 61) % width,
+        y: (i * 151) % height,
+        rx: 50 + Math.random() * 90,
+        ry: 30 + Math.random() * 50,
+        rot: i,
+      });
     }
   }
 
@@ -82,15 +92,9 @@ class StoneWall {
     }
 
     ctx.fillStyle = "rgba(20,24,34,0.5)";
-    for (let i = 0; i < 14; i++) {
+    for (const s of this.shades) {
       ctx.beginPath();
-      ctx.ellipse(
-        (i * 197 + 61) % this.width,
-        (i * 151) % this.height,
-        50 + Math.random() * 90,
-        30 + Math.random() * 50,
-        i, 0, Math.PI * 2
-      );
+      ctx.ellipse(s.x, s.y, s.rx, s.ry, s.rot, 0, Math.PI * 2);
       ctx.fill();
     }
   }
