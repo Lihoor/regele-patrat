@@ -68,12 +68,12 @@ function frame(now) {
 
   wall.draw(ctx);
   level.draw(ctx);
-  for (const torch of torches) torch.draw(ctx);
 
   lighting.apply(ctx, W, H, allLights);
   lighting.glow(ctx, W, H, torchLights);
-  lighting.vignette(ctx, W, H);
+  for (const torch of torches) torch.draw(ctx);
   dust.draw(ctx);
+  lighting.vignette(ctx, W, H);
 
   king.draw(ctx, level);
 
