@@ -12,11 +12,11 @@ class Sound {
     if (!AC) return;
     this.ctx = new AC();
     if (!window.fetch) return;
-    const names = ["step", "step_fast", "land", "jump", "creak", "sneeze", "bow", "sword_swing", "sword_hit", "hit"];
+    const names = ["step", "step_fast", "land", "jump", "creak", "sneeze", "bow", "sword_swing", "sword_hit", "hit", "night", "trap"];
     for (let i = 0; i < names.length; i++) {
       const name = names[i];
       try {
-        fetch("sounds/" + name + ".wav?v=7")
+        fetch("sounds/" + name + ".wav?v=8")
           .then((r) => r.arrayBuffer())
           .then((b) => this.ctx.decodeAudioData(b, (buf) => { this.buffers[name] = buf; this.loaded = true; }))
           .catch(() => {});
@@ -48,5 +48,26 @@ class Sound {
     if (now - this.lastStep < (sprint ? 200 : 260)) return;
     this.lastStep = now;
     this.play(sprint ? "step_fast" : "step", 1, sprint ? 0.2 : 0.22);
+  }
+
+  loop(name, vol) {
+    if (!this.ctx || !this.buffers[name]) return null;
+    try {
+      const src = this.ctx.createBufferSource();
+      src.buffer = this.buffers[name];
+      src.loop = true;
+      src.playbackRate.value = 1;
+      const g = this.ctx.createGain();
+      g.gain.value = vol == null ? 0.4 : vol;
+      src.connect(g);
+      g.connect(this.ctx.destination);
+      src.start();
+      return { src, gain: g };
+    } catch (e) { return null; }
+  }
+
+  stopLoop(handle) {
+    if (!handle || !handle.src) return;
+    try { handle.src.stop(); } catch (e) {}
   }
 }
