@@ -29,6 +29,12 @@ let npcTalked = false;
 let fadeAlpha = 0;
 let fadeDir = 0;
 let fadeCallback = null;
+let scarecrow = null;
+let scarecrowTalked = false;
+let trainingPhase = "none";
+let trainingMenuActive = false;
+let damageNumbers = [];
+let bowChest = null;
 
 const dialogue = {
   active: false,
@@ -38,8 +44,10 @@ const dialogue = {
   shown: 0,
   timer: 0,
   speed: 35,
+  onDone: null,
   show(textOrArray) {
     this.active = true;
+    this.onDone = null;
     if (Array.isArray(textOrArray)) {
       this.lines = textOrArray;
       this.currentLine = 0;
@@ -100,7 +108,9 @@ const dialogue = {
       this.timer = 0;
       return true;
     }
-    this.active = false; return true;
+    this.active = false;
+    if (this.onDone) { const cb = this.onDone; this.onDone = null; cb(); }
+    return true;
   }
 };
 
@@ -114,6 +124,8 @@ function buildWorld() {
   if (frac) king.x = frac * (W - king.w);
 
   knight = new Knight(W * 0.78, level.groundY);
+  scarecrow = null;
+  bowChest = null;
 
   if (currentRoom === 0) {
     torches = [
@@ -134,7 +146,7 @@ function buildWorld() {
     ];
     chest = new Chest(W * 0.20, level.groundY, 2.2);
     chest.sound = sound;
-  } else {
+  } else if (currentRoom === 1) {
     torches = [
       new Torch(W * 0.10, level.groundY * 0.20, 2.0),
       new Torch(W * 0.35, level.groundY * 0.30, 1.9),
@@ -150,6 +162,40 @@ function buildWorld() {
       new Furniture("barrel", W * 0.65, level.groundY, 1.5),
     ];
     chest = null;
+  } else if (currentRoom === 2) {
+    torches = [
+      new Torch(W * 0.08, level.groundY * 0.18, 2.0),
+      new Torch(W * 0.30, level.groundY * 0.25, 1.8),
+      new Torch(W * 0.60, level.groundY * 0.15, 2.1),
+      new Torch(W * 0.88, level.groundY * 0.22, 1.9),
+    ];
+    furniture = [
+      new Furniture("crate", W * 0.12, level.groundY, 1.7),
+      new Furniture("barrel", W * 0.25, level.groundY, 1.8),
+      new Furniture("candelabra", W * 0.45, level.groundY, 1.9),
+      new Furniture("crate", W * 0.68, level.groundY, 1.6),
+      new Furniture("barrel", W * 0.82, level.groundY, 1.7),
+    ];
+    chest = null;
+    scarecrow = new Scarecrow(W * 0.55, level.groundY, 1.25);
+  } else {
+    torches = [
+      new Torch(W * 0.10, level.groundY * 0.20, 2.0),
+      new Torch(W * 0.35, level.groundY * 0.28, 1.9),
+      new Torch(W * 0.65, level.groundY * 0.16, 2.1),
+      new Torch(W * 0.90, level.groundY * 0.24, 1.8),
+    ];
+    furniture = [
+      new Furniture("crate", W * 0.10, level.groundY, 1.7),
+      new Furniture("barrel", W * 0.22, level.groundY, 1.8),
+      new Furniture("candelabra", W * 0.40, level.groundY, 1.9),
+      new Furniture("crate", W * 0.72, level.groundY, 1.6),
+    ];
+    chest = null;
+    scarecrow = new Scarecrow(W * 0.58, level.groundY, 1.25);
+    bowChest = new Chest(W * 0.25, level.groundY, 2.0);
+    bowChest.sound = sound;
+    bowChest.itemType = "bow";
   }
 
   if (!inventory) inventory = new Inventory();
@@ -180,7 +226,28 @@ canvas.addEventListener("click", (e) => {
     return;
   }
   if (paused) { handlePauseClick(e.clientX, e.clientY); return; }
+  if (trainingMenuActive) { trainingMenuActive = false; return; }
   if (dialogue.active) { dialogue.advance(); return; }
+
+  if ((currentRoom === 2 || currentRoom === 3) && scarecrow && !scarecrow.dead && king.heldItem === "sword" && !dialogue.active && !king.sleeping && !king.sneezing && !king.swinging) {
+    const scx = scarecrow.x + scarecrow.w / 2;
+    const kcx = king.x + king.w / 2;
+    const dist = Math.abs(scx - kcx);
+    if (dist < 150) {
+      king.startSwing();
+      const dmg = scarecrow.takeDamage(20);
+      if (dmg > 0) {
+        spawnDamageNumber(scarecrow.x + scarecrow.w / 2, scarecrow.y - 10, dmg);
+        if (scarecrow.dead) {
+          const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
+          trainingPhase = "done";
+          setTimeout(() => {
+            dialogue.show(currentRoom === 3 ? L.bowDone : L.trainingDone);
+          }, 300);
+        }
+      }
+    }
+  }
 });
 
 let last = performance.now();
@@ -231,24 +298,31 @@ function frame(now) {
     king.update(dt, input, level, dust);
     if (currentRoom === 0 && chest) chest.update(dt, king.x, king.w);
     if (currentRoom === 1 && knight) knight.update(dt, king.x, king.w);
+    if ((currentRoom === 2 || currentRoom === 3) && scarecrow) scarecrow.update(dt, king.x, king.w);
+    if (currentRoom === 3 && bowChest) bowChest.update(dt, king.x, king.w);
+    updateDamageNumbers(dt);
   }
 
-  if (!dialogue.active && !king.sleeping && !king.sneezing) {
-    if (king.x + king.w >= W - 2) {
+  if (!dialogue.active && !king.sleeping && !king.sneezing && !king.swinging && !trainingMenuActive) {
+    if (king.x + king.w >= W - 2 && currentRoom < 3) {
       fadeDir = 1;
       fadeCallback = () => {
-        currentRoom = 1;
+        currentRoom++;
         king.x = 2;
         king.y = level.groundY - king.h;
+        scarecrow = null;
+        bowChest = null;
         buildWorld();
         fadeDir = -1;
       };
-    } else if (currentRoom === 1 && king.x <= 2) {
+    } else if (king.x <= 2 && currentRoom > 0) {
       fadeDir = 1;
       fadeCallback = () => {
-        currentRoom = 0;
+        currentRoom--;
         king.x = W - king.w - 2;
         king.y = level.groundY - king.h;
+        scarecrow = null;
+        bowChest = null;
         buildWorld();
         fadeDir = -1;
       };
@@ -280,8 +354,29 @@ function frame(now) {
       const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
       dialogue.show(L.knightDialogue);
     }
+    if ((currentRoom === 2 || currentRoom === 3) && scarecrow && scarecrow.promptAlpha > 0.5 && !scarecrow.dead) {
+      if (trainingPhase === "none" || trainingPhase === "done") {
+        const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
+        if (!scarecrowTalked) {
+          scarecrowTalked = true;
+          trainingPhase = "dialogue";
+          dialogue.show(currentRoom === 3 ? L.bowDialogue : L.scarecrowDialogue);
+          dialogue.onDone = () => {
+            trainingPhase = "menu";
+            trainingMenuActive = true;
+          };
+        } else {
+          trainingPhase = "menu";
+          trainingMenuActive = true;
+        }
+      }
+    }
+    if (currentRoom === 3 && bowChest && !inventory.hasItem("bow")) {
+      const result = bowChest.interact();
+      if (result === "bow") inventory.add("bow");
+    }
   }
-  if (!sneezeTriggered && chest && chest.state !== "closed" && king.x > W * 0.78 && !king.sneezing && !king.sleeping) {
+  if (!sneezeTriggered && currentRoom === 0 && chest && chest.state !== "closed" && king.x > W * 0.78 && !king.sneezing && !king.sleeping) {
     sneezeTriggered = true;
     king.sneezing = true;
     king.sneezeTimer = 0;
@@ -324,15 +419,45 @@ function frame(now) {
 
   if (chest) chest.drawGlow(ctx);
   if (currentRoom === 1 && knight) knight.draw(ctx);
+  if ((currentRoom === 2 || currentRoom === 3) && scarecrow) scarecrow.draw(ctx);
+  if (currentRoom === 3 && bowChest) {
+    bowChest.drawBody(ctx);
+    bowChest.drawGlow(ctx);
+  }
   king.draw(ctx, level);
+
+  if ((currentRoom === 2 || currentRoom === 3) && scarecrow) {
+    const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
+    const promptText = currentRoom === 3 ? L.bowPrompt : L.scarecrowPrompt;
+    if (scarecrow.promptAlpha > 0.05 && !scarecrow.dead) {
+      ctx.save();
+      ctx.globalAlpha = scarecrow.promptAlpha;
+      ctx.fillStyle = "#e8d8a0";
+      ctx.font = "bold 16px Georgia, serif";
+      ctx.textAlign = "center";
+      ctx.fillText(promptText, scarecrow.x + scarecrow.w / 2, scarecrow.y - 30);
+      ctx.restore();
+    }
+  }
+
+  drawDamageNumbers(ctx);
 
   dialogue.update(dt);
   dialogue.draw(ctx, W, H);
 
   if (currentRoom === 0 && chest) chest.drawHUD(ctx);
+  if (currentRoom === 3 && bowChest) bowChest.drawHUD(ctx);
   inventory.draw(ctx, W, H);
 
   drawStamina(ctx);
+
+  if ((currentRoom === 2 || currentRoom === 3) && !dialogue.active) {
+    const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
+    const panelText = currentRoom === 3 ? L.roomBow : L.roomTraining;
+    drawWallPanel(ctx, W * 0.05, level.groundY * 0.35, 180, 40, panelText);
+  }
+
+  drawTrainingMenu(ctx, W, H);
 
   if (fadeAlpha > 0) {
     ctx.fillStyle = `rgba(0,0,0,${fadeAlpha.toFixed(2)})`;
@@ -380,6 +505,109 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.arcTo(x, y + h, x, y, r);
   ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
+}
+
+function spawnDamageNumber(x, y, amount) {
+  damageNumbers.push({
+    x: x + (Math.random() - 0.5) * 20,
+    y: y,
+    amount: amount,
+    timer: 0,
+    duration: 0.8,
+    vy: -120,
+  });
+}
+
+function updateDamageNumbers(dt) {
+  for (let i = damageNumbers.length - 1; i >= 0; i--) {
+    const d = damageNumbers[i];
+    d.timer += dt;
+    d.y += d.vy * dt;
+    d.vy += 80 * dt;
+    if (d.timer >= d.duration) damageNumbers.splice(i, 1);
+  }
+}
+
+function drawDamageNumbers(ctx) {
+  for (const d of damageNumbers) {
+    const alpha = 1 - d.timer / d.duration;
+    const scale = 1 + d.timer * 2;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = "#ff4444";
+    ctx.strokeStyle = "rgba(0,0,0,0.6)";
+    ctx.lineWidth = 3;
+    ctx.font = `bold ${Math.round(22 * scale)}px Georgia, serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.strokeText(`-${d.amount}`, d.x, d.y);
+    ctx.fillText(`-${d.amount}`, d.x, d.y);
+    ctx.restore();
+  }
+}
+
+function drawTrainingMenu(ctx, W, H) {
+  if (!trainingMenuActive) return;
+  const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
+  const menuData = currentRoom === 3 ? L.bowMenu : L.trainingMenu;
+
+  ctx.fillStyle = "rgba(0,0,0,0.55)";
+  ctx.fillRect(0, 0, W, H);
+
+  const mw = 400, mh = 200;
+  const mx = (W - mw) / 2, my = (H - mh) / 2;
+
+  ctx.fillStyle = "rgba(15,10,5,0.92)";
+  roundRect(ctx, mx, my, mw, mh, 12);
+  ctx.fill();
+  ctx.strokeStyle = "#b8922e";
+  ctx.lineWidth = 2.5;
+  roundRect(ctx, mx, my, mw, mh, 12);
+  ctx.stroke();
+
+  ctx.fillStyle = "#e8d8a0";
+  ctx.font = "bold 24px Georgia, serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(menuData.title, W / 2, my + 40);
+
+  ctx.fillStyle = "#b0a068";
+  ctx.font = "16px Georgia, serif";
+  ctx.fillText(menuData.instruction, W / 2, my + 85);
+
+  ctx.fillStyle = "#a09060";
+  ctx.font = "14px Georgia, serif";
+  ctx.fillText(menu.lang === "en" ? "Press [E] to talk to the mannequin" : "Apasa [E] pentru a vorbi cu manechinul", W / 2, my + 120);
+
+  const bw = 140, bh = 42;
+  const bx = (W - bw) / 2, by = my + mh - 60;
+  const hover = mouseX >= bx && mouseX <= bx + bw && mouseY >= by && mouseY <= by + bh;
+  ctx.fillStyle = hover ? "rgba(50,40,20,0.85)" : "rgba(25,20,10,0.75)";
+  roundRect(ctx, bx, by, bw, bh, 8);
+  ctx.fill();
+  ctx.strokeStyle = hover ? "#e8c84a" : "#b8922e";
+  ctx.lineWidth = hover ? 2.5 : 1.8;
+  roundRect(ctx, bx, by, bw, bh, 8);
+  ctx.stroke();
+  ctx.fillStyle = hover ? "#fff8e0" : "#e8d8a0";
+  ctx.font = "bold 17px Georgia, serif";
+  ctx.fillText(menuData.close, W / 2, by + bh / 2 + 1);
+}
+
+function drawWallPanel(ctx, x, y, w, h, text) {
+  ctx.fillStyle = "#2a1e12";
+  ctx.strokeStyle = "#4a3820";
+  ctx.lineWidth = 3;
+  roundRect(ctx, x, y, w, h, 6);
+  ctx.fill();
+  roundRect(ctx, x, y, w, h, 6);
+  ctx.stroke();
+
+  ctx.fillStyle = "#e8d8a0";
+  ctx.font = "bold 16px Georgia, serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x + w / 2, y + h / 2);
 }
 
 let pauseBtns = [];
@@ -440,6 +668,8 @@ function drawPause(ctx, W, H) {
       dialogue.active = false;
       menu.active = true;
       pauseState = "main";
+      trainingMenuActive = false;
+      damageNumbers = [];
     });
     _pauseBtn(ctx, W/2 - bw/2, H*0.66, bw, bh, L.restart, () => {
       paused = false;
@@ -448,6 +678,10 @@ function drawPause(ctx, W, H) {
       sneezeTriggered = false;
       currentRoom = 0;
       npcTalked = false;
+      scarecrowTalked = false;
+      trainingPhase = "none";
+      trainingMenuActive = false;
+      damageNumbers = [];
       inventory = null;
       buildWorld();
       pauseState = "main";
