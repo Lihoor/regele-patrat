@@ -39,6 +39,8 @@ let arrows = [];
 let bowCooldown = 0;
 let stairs = null;
 let nightSky = null;
+let trap = null;
+let trapTriggered = false;
 
 const dialogue = {
   active: false,
@@ -219,6 +221,8 @@ function buildWorld() {
     furniture = [];
     chest = null;
     stairs = null;
+    trap = new Trap(W * 0.38, level.groundY, 64);
+    trapTriggered = false;
   }
 
   if (!inventory) inventory = new Inventory();
@@ -354,6 +358,19 @@ function frame(now) {
         inventory._starveTimer = 0;
       }
     }
+    if (currentRoom === 5 && trap && !trapTriggered && !king.sleeping && !king.sneezing) {
+      if (trap.checkCollision(king.x, king.w, king.y, king.h)) {
+        trap.trigger();
+        trapTriggered = true;
+        inventory.hp = Math.max(0, inventory.hp - 60);
+        spawnDamageNumber(king.x + king.w / 2, king.y - 10, 60);
+        setTimeout(() => {
+          const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
+          dialogue.show(L.trapDialogue);
+        }, 400);
+      }
+    }
+    if (trap) trap.update(dt);
   }
 
   if (!dialogue.active && !king.sleeping && !king.sneezing && !king.swinging && !trainingMenuActive) {
@@ -367,6 +384,7 @@ function frame(now) {
         bowChest = null;
         stairs = null;
         nightSky = null;
+        trap = null;
         buildWorld();
         fadeDir = -1;
       };
@@ -380,6 +398,7 @@ function frame(now) {
         bowChest = null;
         stairs = null;
         nightSky = null;
+        trap = null;
         buildWorld();
         fadeDir = -1;
       };
@@ -474,6 +493,7 @@ function frame(now) {
   for (const f of furniture) f.draw(ctx);
   if (chest) chest.drawBody(ctx);
   if (currentRoom === 4 && stairs) stairs.draw(ctx);
+  if (currentRoom === 5 && trap) trap.drawIndicator(ctx);
 
   if (currentRoom === 5 && nightSky) {
     const moonLights = [{
@@ -495,6 +515,7 @@ function frame(now) {
   for (const torch of torches) torch.draw(ctx);
   dust.draw(ctx);
   lighting.vignette(ctx, W, H);
+  if (currentRoom === 5 && trap) trap.draw(ctx);
 
   if (chest) chest.drawGlow(ctx);
   if (currentRoom === 1 && knight) knight.draw(ctx);
