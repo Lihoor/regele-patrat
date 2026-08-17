@@ -368,7 +368,7 @@ canvas.addEventListener("click", (e) => {
         const kcx = king.x + king.w / 2;
         const dist = Math.abs(bcx - kcx);
         if (dist < 160) {
-          const dmg = boss.takeDamage(20);
+          const dmg = boss.takeDamage(20, false);
           if (dmg > 0) {
             spawnDamageNumber(boss.centerX, boss.y - 10, dmg);
             if (sound) sound.play("sword_hit", 1, 0.6);
@@ -937,7 +937,7 @@ function updateArrows(dt) {
     if (boss && !boss.dead && currentRoom === 7) {
       const bx = boss.x, by = boss.y, bw = boss.w, bh = boss.h;
       if (a.x > bx && a.x < bx + bw && a.y > by && a.y < by + bh) {
-        const dmg = boss.takeDamage(15);
+        const dmg = boss.takeDamage(15, true);
         if (dmg > 0) {
           spawnDamageNumber(a.x, a.y - 10, dmg);
           if (sound) sound.play("sword_hit", 1, 0.5);
