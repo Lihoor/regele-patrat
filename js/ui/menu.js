@@ -60,6 +60,8 @@ const LANG = {
     roomBow: "Sala de Arc",
     trapDialogue: "Ouch! Cine a pus asta aici?!",
     roomBalcony: "Balconul Castelului",
+    armorDialogue: "O armura veche! Ar putea fi utila...",
+    roomArmory: "Arsenalul",
   },
   en: {
     title: "The Sleeping King",
@@ -122,6 +124,8 @@ const LANG = {
     roomBow: "Archery Hall",
     trapDialogue: "Ouch! Who put that there?!",
     roomBalcony: "Castle Balcony",
+    armorDialogue: "An old suit of armor! This could be useful...",
+    roomArmory: "The Armory",
   },
 };
 
