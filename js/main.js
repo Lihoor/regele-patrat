@@ -499,6 +499,13 @@ function frame(now) {
         king.knockback = boss.facing * 180;
         if (sound) sound.play("hit", 1, 0.5);
       }
+      const hDmg = boss.checkHarpoonHit(king.x, king.w, king.y, king.h);
+      if (hDmg > 0 && inventory) {
+        const finalHDmg = hasArmor ? Math.floor(hDmg * 0.5) : hDmg;
+        inventory.hp = Math.max(0, inventory.hp - finalHDmg);
+        spawnDamageNumber(king.x + king.w / 2, king.y - 10, finalHDmg);
+        if (sound) sound.play("hit", 1, 0.6);
+      }
     }
     if (currentRoom === 7 && boss && boss.dying) {
       boss.update(dt, king.x, king.w, king.y);
