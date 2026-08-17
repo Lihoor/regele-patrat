@@ -361,6 +361,7 @@ function frame(now) {
   if (!dialogue.active) {
     king.update(dt, input, level, dust);
     if (currentRoom === 0 && chest) chest.update(dt, king.x, king.w);
+    if (currentRoom === 6 && chest) chest.update(dt, king.x, king.w);
     if (currentRoom === 1 && knight) knight.update(dt, king.x, king.w);
     if ((currentRoom === 2 || currentRoom === 3) && scarecrow) scarecrow.update(dt, king.x, king.w);
     if (currentRoom === 3 && bowChest) bowChest.update(dt, king.x, king.w);
