@@ -28,6 +28,9 @@ class King {
     this.onWakeUp = null;
     this.sneezing = false;
     this.sneezeTimer = 0;
+    this.swinging = false;
+    this.swingTimer = 0;
+    this.swingDuration = 0.3;
   }
 
   update(dt, input, level, fx) {
@@ -49,6 +52,16 @@ class King {
     if (this.sneezing) {
       this.sneezeTimer += dt;
       if (this.sneezeTimer > 0.6) { this.sneezing = false; this.sneezeTimer = 0; }
+      this.time += dt;
+      return;
+    }
+
+    if (this.swinging) {
+      this.swingTimer += dt;
+      if (this.swingTimer >= this.swingDuration) {
+        this.swinging = false;
+        this.swingTimer = 0;
+      }
       this.time += dt;
       return;
     }
@@ -116,6 +129,13 @@ class King {
       this.vy = this.jumpV;
       this.onGround = false;
     }
+  }
+
+  startSwing() {
+    if (this.swinging || this.sleeping || this.sneezing) return false;
+    this.swinging = true;
+    this.swingTimer = 0;
+    return true;
   }
 
   draw(ctx, level) {
@@ -231,8 +251,19 @@ class King {
     if (this.heldItem === "sword") {
       const handX = 38;
       const handY = -28;
-      const swing = this.moving ? Math.sin(this.walkT) * 0.12 : 0;
-      drawSword(ctx, handX, handY, 1.1, -0.25 + swing);
+      if (this.swinging) {
+        const p = this.swingTimer / this.swingDuration;
+        const swingAngle = -1.2 + p * 2.4;
+        drawSword(ctx, handX, handY, 1.2, swingAngle);
+      } else {
+        const swing = this.moving ? Math.sin(this.walkT) * 0.12 : 0;
+        drawSword(ctx, handX, handY, 1.1, -0.25 + swing);
+      }
+    } else if (this.heldItem === "bow") {
+      const handX = 36;
+      const handY = -20;
+      const swing = this.moving ? Math.sin(this.walkT) * 0.08 : 0;
+      this.drawBow(ctx, handX, handY, 1.0, -0.15 + swing);
     }
 
     ctx.restore();
@@ -702,5 +733,42 @@ class King {
 
   clamp(v, a, b) {
     return v < a ? a : v > b ? b : v;
+  }
+
+  drawBow(ctx, x, y, sc, rot) {
+    ctx.save();
+    ctx.translate(x, y);
+    if (rot) ctx.rotate(rot);
+    ctx.scale(sc, sc);
+
+    ctx.strokeStyle = "#6b4a28";
+    ctx.lineWidth = 4;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(-6, -24);
+    ctx.quadraticCurveTo(-16, 0, -6, 24);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#c4a44a";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(-6, -22);
+    ctx.lineTo(-6, 22);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#b8922e";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-6, -22);
+    ctx.lineTo(8, 0);
+    ctx.lineTo(-6, 22);
+    ctx.stroke();
+
+    ctx.fillStyle = "#8a6420";
+    ctx.beginPath();
+    ctx.arc(8, 0, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
   }
 }
