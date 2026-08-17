@@ -315,6 +315,7 @@ window.addEventListener("resize", resize);
 resize();
 
 canvas.addEventListener("click", (e) => {
+  if (handleFullscreenClick(e.clientX, e.clientY)) return;
   if (menu && menu.active) {
     menu.handleClick(e.clientX, e.clientY, W, H);
     return;
@@ -339,14 +340,23 @@ canvas.addEventListener("click", (e) => {
     scarecrow3Dead = false;
     hasArmor = false;
     trapTriggered = false;
+    sneezeTriggered = false;
+    npcTalked = false;
+    scarecrowTalked = false;
+    nightSky = null;
+    trap = null;
+    armorStand = null;
     inventory.hp = 100;
     inventory.hunger = 100;
-    inventory.items = [];
-    inventory.selectedSlot = 0;
+    inventory.slots = [null, null, null];
+    inventory.equipped = -1;
     king.x = W * 0.07 - king.w / 2;
     king.y = level.groundY - king.h;
     king.sleeping = false;
     king.heldItem = null;
+    king.facing = 1;
+    king.vy = 0;
+    king.onGround = true;
     scarecrow = null;
     bowChest = null;
     arrows = [];
@@ -779,6 +789,7 @@ function frame(now) {
   if (currentRoom === 6 && chest) chest.drawHUD(ctx);
   inventory.draw(ctx, W, H);
   if (currentRoom === 7 && boss) boss.drawHealthBar(ctx);
+  drawFullscreenBtn(ctx, W);
 
   drawStamina(ctx);
 
@@ -1169,6 +1180,77 @@ function _pauseLangBtn(ctx, x, y, w, h, label, active, fn) {
   ctx.fillText(label, x + w/2, y + h/2);
 }
 
+let _fsBtnRect = null;
+function drawFullscreenBtn(ctx, W) {
+  const sz = 28;
+  const x = W - sz - 12;
+  const y = 10;
+  _fsBtnRect = { x, y, w: sz, h: sz };
+
+  ctx.fillStyle = "rgba(30,28,22,0.7)";
+  roundRect(ctx, x, y, sz, sz, 4);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(180,160,100,0.5)";
+  ctx.lineWidth = 1;
+  roundRect(ctx, x, y, sz, sz, 4);
+  ctx.stroke();
+
+  const cx = x + sz / 2;
+  const cy = y + sz / 2;
+  const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+
+  ctx.strokeStyle = "#c8b880";
+  ctx.lineWidth = 1.5;
+  ctx.lineJoin = "round";
+  ctx.beginPath();
+  if (isFS) {
+    ctx.moveTo(cx - 5, cy - 5);
+    ctx.lineTo(cx - 5, cy - 2);
+    ctx.lineTo(cx - 2, cy - 5);
+    ctx.moveTo(cx + 5, cy - 5);
+    ctx.lineTo(cx + 5, cy - 2);
+    ctx.lineTo(cx + 2, cy - 5);
+    ctx.moveTo(cx - 5, cy + 5);
+    ctx.lineTo(cx - 5, cy + 2);
+    ctx.lineTo(cx - 2, cy + 5);
+    ctx.moveTo(cx + 5, cy + 5);
+    ctx.lineTo(cx + 5, cy + 2);
+    ctx.lineTo(cx + 2, cy + 5);
+  } else {
+    ctx.moveTo(cx - 6, cy - 3);
+    ctx.lineTo(cx - 6, cy - 6);
+    ctx.lineTo(cx - 3, cy - 6);
+    ctx.moveTo(cx + 6, cy - 3);
+    ctx.lineTo(cx + 6, cy - 6);
+    ctx.lineTo(cx + 3, cy - 6);
+    ctx.moveTo(cx - 6, cy + 3);
+    ctx.lineTo(cx - 6, cy + 6);
+    ctx.lineTo(cx - 3, cy + 6);
+    ctx.moveTo(cx + 6, cy + 3);
+    ctx.lineTo(cx + 6, cy + 6);
+    ctx.lineTo(cx + 3, cy + 6);
+  }
+  ctx.stroke();
+  ctx.lineJoin = "miter";
+}
+
+function handleFullscreenClick(mx, my) {
+  if (!_fsBtnRect) return false;
+  const b = _fsBtnRect;
+  if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+    return true;
+  }
+  return false;
+}
+
 const TELEPORT_ROOMS = [
   { id: 0, name: "Camera Tronului" },
   { id: 1, name: "Camera Cavalerului" },
@@ -1308,6 +1390,21 @@ function drawPause(ctx, W, H) {
       damageNumbers = [];
       arrows = [];
       bowCooldown = 0;
+      bossDefeated = false;
+      bossIntroShown = false;
+      boss = null;
+      armorCollected = false;
+      foodChestUsed = false;
+      swordChestOpened = false;
+      bowPickedUp = false;
+      scarecrow2Dead = false;
+      scarecrow3Dead = false;
+      hasArmor = false;
+      trapTriggered = false;
+      scarecrowTalked = false;
+      nightSky = null;
+      trap = null;
+      armorStand = null;
       inventory = null;
       buildWorld();
       if (inventory) { inventory.hp = 100; inventory.hunger = 100; }
