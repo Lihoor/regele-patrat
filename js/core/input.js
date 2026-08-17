@@ -7,6 +7,7 @@ class Input {
     this._interactQueued = false;
     this._equipSlot = -1;
     this._escapeQueued = false;
+    this._teleportQueued = false;
 
     window.addEventListener("keydown", (e) => this.onKey(e, true));
     window.addEventListener("keyup", (e) => this.onKey(e, false));
@@ -35,6 +36,7 @@ class Input {
     if (down && e.code === "Digit2") this._equipSlot = 1;
     if (down && e.code === "Digit3") this._equipSlot = 2;
     if (down && e.code === "Escape") this._escapeQueued = true;
+    if (down && e.code === "Backslash") this._teleportQueued = true;
   }
 
   consumeJump() {
@@ -58,6 +60,12 @@ class Input {
   consumeEscape() {
     const v = this._escapeQueued;
     this._escapeQueued = false;
+    return v;
+  }
+
+  consumeTeleport() {
+    const v = this._teleportQueued;
+    this._teleportQueued = false;
     return v;
   }
 }
