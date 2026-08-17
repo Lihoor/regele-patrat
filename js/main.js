@@ -320,7 +320,18 @@ function frame(now) {
     updateArrows(dt);
     if (bowCooldown > 0) bowCooldown -= dt;
     if (inventory) {
-      inventory.hunger = Math.max(0, inventory.hunger - 1.5 * dt);
+      const hungerDrain = king.sprinting ? 0.3 : 0.167;
+      inventory.hunger = Math.max(0, inventory.hunger - hungerDrain * dt);
+      if (inventory.hunger <= 0) {
+        if (!inventory._starveTimer) inventory._starveTimer = 0;
+        inventory._starveTimer += dt;
+        if (inventory._starveTimer >= 10) {
+          inventory._starveTimer = 0;
+          inventory.hp = Math.max(0, inventory.hp - 1);
+        }
+      } else {
+        inventory._starveTimer = 0;
+      }
     }
   }
 
