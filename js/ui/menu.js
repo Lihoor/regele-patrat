@@ -34,6 +34,30 @@ const LANG = {
       "Cavalerul: Regatul este acum acaparat de oameni ai intunericului.",
       "Cavalerul: Treziti-va, Majestate. Regatul are nevoie de voi."
     ],
+    scarecrowDialogue: [
+      "Rege: Ce este asta? Un manechin de paie?",
+      "Rege: Hmm... arata ca si cum ar avea nevoie de putin antrenament."
+    ],
+    scarecrowPrompt: "[E] Antreneaza-te",
+    trainingMenu: {
+      title: "SALA DE ANTRENAMENT",
+      instruction: "Click pentru a lovi manechinul!",
+      close: "Inchide"
+    },
+    trainingDone: "Gata, te-ai pregatit!",
+    bowDialogue: [
+      "Rege: O alta sala... cu un alt manechin.",
+      "Rege: De data asta am gasit si un arc intr-un cufar!"
+    ],
+    bowPrompt: "[E] Antreneaza-te (Arc)",
+    bowMenu: {
+      title: "SALA DE ARC",
+      instruction: "Click pentru a trage cu arcul!",
+      close: "Inchide"
+    },
+    bowDone: "Gata, esti pregatit pentru lupta!",
+    roomTraining: "Sala de Antrenament",
+    roomBow: "Sala de Arc",
   },
   en: {
     title: "The Sleeping King",
@@ -70,6 +94,30 @@ const LANG = {
       "Knight: The kingdom is now overrun by servants of darkness.",
       "Knight: Wake up, Your Majesty. The kingdom needs you."
     ],
+    scarecrowDialogue: [
+      "King: What is this? A straw mannequin?",
+      "King: Hmm... it looks like it could use some training."
+    ],
+    scarecrowPrompt: "[E] Train",
+    trainingMenu: {
+      title: "TRAINING HALL",
+      instruction: "Click to hit the mannequin!",
+      close: "Close"
+    },
+    trainingDone: "Done, you are ready!",
+    bowDialogue: [
+      "King: Another room... with another mannequin.",
+      "King: This time I found a bow in a chest!"
+    ],
+    bowPrompt: "[E] Train (Bow)",
+    bowMenu: {
+      title: "ARCHERY HALL",
+      instruction: "Click to shoot the bow!",
+      close: "Close"
+    },
+    bowDone: "Done, you are ready for battle!",
+    roomTraining: "Training Hall",
+    roomBow: "Archery Hall",
   },
 };
 
