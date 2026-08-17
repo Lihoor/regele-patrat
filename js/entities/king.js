@@ -62,8 +62,6 @@ class King {
         this.swinging = false;
         this.swingTimer = 0;
       }
-      this.time += dt;
-      return;
     }
 
     this.moving = input.left || input.right;
