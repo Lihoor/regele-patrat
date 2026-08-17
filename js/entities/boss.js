@@ -45,19 +45,25 @@ class Boss {
     this.enrageGlow = 0;
     this.auraParticles = [];
     this.stompTimer = 0;
+    this.jumpAttack = false;
+    this.jumpAttackTimer = 0;
+    this.jumpAttackDuration = 0.6;
+    this.jumpY = 0;
+    this.jumpVY = 0;
+    this.kingY = 0;
   }
 
   get centerX() { return this.x + this.w / 2; }
   get centerY() { return this.y + this.h / 2; }
   get y() { return this.groundY - this.h; }
 
-  takeDamage(dmg) {
+  takeDamage(dmg, fromArrow) {
     if (this.dead || this.dying) return 0;
     const actual = Math.min(this.hp, dmg);
     this.hp -= actual;
     this.hitFlash = 0.25;
     this.shakeX = (Math.random() - 0.5) * 16;
-    this.knockback = this.facing * -40;
+    this.knockback = fromArrow ? this.facing * -8 : this.facing * -35;
 
     if (!this.enraged && this.hp <= this.maxHp * 0.5) {
       this.enraged = true;
@@ -81,6 +87,7 @@ class Boss {
     this.breathT += dt;
     this.legT += dt;
     this.pulseGlow += dt;
+    this.kingY = kingY;
     this.armorGlow = Math.sin(this.t * 2) * 0.15 + 0.3;
     if (this.enraged) this.enrageGlow = 0.3 + Math.sin(this.t * 5) * 0.2;
 
@@ -139,6 +146,22 @@ class Boss {
     const dist = Math.abs(kcx - bcx);
     this.facing = kcx > bcx ? 1 : -1;
 
+    if (this.jumpAttack) {
+      this.jumpAttackTimer += dt;
+      this.jumpY += this.jumpVY * dt;
+      this.jumpVY += 1400 * dt;
+      this.x += this.facing * this.moveSpeed * 2.5 * dt;
+      if (this.jumpY >= 0) {
+        this.jumpY = 0;
+        this.jumpVY = 0;
+        this.jumpAttack = false;
+        this.jumpAttackTimer = 0;
+        this.slamShockwave = 1;
+        this.attackCooldown = this.enraged ? 0.4 + Math.random() * 0.3 : 0.7 + Math.random() * 0.4;
+      }
+      return;
+    }
+
     if (this.slamming) {
       this.slamTimer += dt;
       if (this.slamTimer > this.slamDuration * 0.3 && this.slamTimer < this.slamDuration * 0.35) {
@@ -185,13 +208,20 @@ class Boss {
         this.swingAngle = 0;
         this.attackCooldown = this.enraged ? 0.4 + Math.random() * 0.5 : 0.6 + Math.random() * 0.7;
       }
-    } else if (dist < 140 * this.scale && this.attackCooldown <= 0) {
+    } else if (dist < 220 * this.scale && this.attackCooldown <= 0) {
+      const kingInAir = kingY < this.groundY - 120;
       const roll = Math.random();
-      if (roll < 0.35) {
+      if (kingInAir && roll < 0.55) {
+        this.jumpAttack = true;
+        this.jumpAttackTimer = 0;
+        this.jumpY = 0;
+        this.jumpVY = -700;
+        this.state = "jump";
+      } else if (roll < 0.28) {
         this.charging = true;
         this.chargeTimer = 0;
         this.state = "charge";
-      } else if (roll < 0.65) {
+      } else if (roll < 0.5) {
         this.attacking = true;
         this.attackTimer = 0;
         this.state = "attack";
@@ -204,7 +234,7 @@ class Boss {
         this.attackTimer = 0;
         this.state = "attack";
       }
-    } else if (dist > 250 * this.scale || Math.random() < 0.03) {
+    } else if (dist > 300 * this.scale || Math.random() < 0.03) {
       this.state = "walk";
     }
 
@@ -223,13 +253,26 @@ class Boss {
   canDamage(kingX, kingW, kingY) {
     if (this.dead || this.dying) return 0;
 
+    if (this.jumpAttack) {
+      const progress = this.jumpAttackTimer / this.jumpAttackDuration;
+      if (progress > 0.3 && progress < 0.8) {
+        const kcx = kingX + kingW / 2;
+        const bcx = this.centerX;
+        const dx = Math.abs(kcx - bcx);
+        if (dx < this.w * 2.0) {
+          return this.enraged ? 40 : 30;
+        }
+      }
+      return 0;
+    }
+
     if (this.slamming) {
       const slamProgress = this.slamTimer / this.slamDuration;
       if (slamProgress > 0.28 && slamProgress < 0.38) {
         const kcx = kingX + kingW / 2;
         const dx = Math.abs(kcx - this.centerX);
-        if (dx < this.w * 1.8) {
-          return this.enraged ? this.slamDamage : 20;
+        if (dx < this.w * 2.2) {
+          return this.enraged ? this.slamDamage : 25;
         }
       }
       return 0;
@@ -239,7 +282,7 @@ class Boss {
       const kcx = kingX + kingW / 2;
       const bcx = this.centerX;
       const dx = Math.abs(kcx - bcx);
-      if (dx < (this.w / 2 + kingW / 2 + 10) * 1.2) {
+      if (dx < (this.w / 2 + kingW / 2 + 20) * 1.3) {
         return this.enraged ? 30 : 20;
       }
       return 0;
@@ -247,11 +290,11 @@ class Boss {
 
     if (!this.attacking) return 0;
     const progress = this.attackTimer / this.attackDuration;
-    if (progress < 0.3 || progress > 0.7) return 0;
+    if (progress < 0.25 || progress > 0.75) return 0;
     const kcx = kingX + kingW / 2;
     const bcx = this.centerX;
     const dx = Math.abs(kcx - bcx);
-    if (dx < (this.w / 2 + kingW / 2 + 15) * 1.1) {
+    if (dx < (this.w / 2 + kingW / 2 + 25) * 1.2) {
       return this.attackDamage;
     }
     return 0;
@@ -260,7 +303,8 @@ class Boss {
   draw(ctx) {
     ctx.save();
     const sx = this.x + this.shakeX;
-    const sy = this.y;
+    const jumpOffset = this.jumpY || 0;
+    const sy = this.y - jumpOffset;
     const sc = this.scale;
 
     if (this.dead && !this.dying) {
