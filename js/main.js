@@ -55,6 +55,7 @@ let bossIntroShown = false;
 let gameOver = false;
 let battleMusic = null;
 let nightSoundId = null;
+let teleportMenuActive = false;
 
 const dialogue = {
   active: false,
@@ -319,6 +320,11 @@ canvas.addEventListener("click", (e) => {
     return;
   }
   if (paused) { handlePauseClick(e.clientX, e.clientY); return; }
+  if (teleportMenuActive) {
+    if (handleTeleportClick(e.clientX, e.clientY)) return;
+    teleportMenuActive = false;
+    return;
+  }
   if (gameOver) {
     gameOver = false;
     currentRoom = 0;
@@ -421,8 +427,20 @@ function frame(now) {
   }
 
   if (input.consumeEscape() && !dialogue.active && gameStarted) {
-    if (paused) { paused = false; pauseState = "main"; }
+    if (teleportMenuActive) { teleportMenuActive = false; }
+    else if (paused) { paused = false; pauseState = "main"; }
     else { paused = true; pauseState = "main"; }
+  }
+
+  if (input.consumeTeleport() && !dialogue.active && gameStarted && !paused) {
+    teleportMenuActive = !teleportMenuActive;
+  }
+
+  if (teleportMenuActive) {
+    drawTeleportMenu(ctx, W, H);
+    canvas.style.cursor = "default";
+    requestAnimationFrame(frame);
+    return;
   }
 
   if (paused) {
@@ -1142,6 +1160,106 @@ function _pauseLangBtn(ctx, x, y, w, h, label, active, fn) {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(label, x + w/2, y + h/2);
+}
+
+const TELEPORT_ROOMS = [
+  { id: 0, name: "Camera Tronului" },
+  { id: 1, name: "Camera Cavalerului" },
+  { id: 2, name: "Camera de Antrenament" },
+  { id: 3, name: "Camera Arcului" },
+  { id: 4, name: "Camera Scarilor" },
+  { id: 5, name: "Balcon" },
+  { id: 6, name: "Camera Armurilor" },
+  { id: 7, name: "Arena Luptei" },
+];
+
+let teleportBtns = [];
+
+function drawTeleportMenu(ctx, W, H) {
+  teleportBtns = [];
+  ctx.fillStyle = "rgba(0,0,0,0.8)";
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.fillStyle = "#888";
+  ctx.font = "12px sans-serif";
+  ctx.textAlign = "right";
+  ctx.fillText("secret menu", W - 16, 22);
+
+  ctx.fillStyle = "#c8b880";
+  ctx.font = "bold 22px Georgia, serif";
+  ctx.textAlign = "center";
+  ctx.fillText("Teleport", W / 2, 60);
+
+  const cols = 4;
+  const bw = 140;
+  const bh = 44;
+  const gap = 12;
+  const totalW = cols * bw + (cols - 1) * gap;
+  const startX = (W - totalW) / 2;
+  const startY = 100;
+
+  for (let i = 0; i < TELEPORT_ROOMS.length; i++) {
+    const room = TELEPORT_ROOMS[i];
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const bx = startX + col * (bw + gap);
+    const by = startY + row * (bh + gap);
+
+    const isCurrent = currentRoom === room.id;
+    ctx.fillStyle = isCurrent ? "rgba(180,140,60,0.3)" : "rgba(40,35,25,0.8)";
+    roundRect(ctx, bx, by, bw, bh, 6);
+    ctx.fill();
+    ctx.strokeStyle = isCurrent ? "#c8b880" : "#5a4a30";
+    ctx.lineWidth = isCurrent ? 2 : 1;
+    roundRect(ctx, bx, by, bw, bh, 6);
+    ctx.stroke();
+
+    ctx.fillStyle = isCurrent ? "#c8b880" : "#b8a870";
+    ctx.font = "bold 12px Georgia, serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(room.name, bx + bw / 2, by + bh / 2 - 2);
+
+    ctx.fillStyle = isCurrent ? "#a09050" : "#706040";
+    ctx.font = "10px sans-serif";
+    ctx.fillText(`#${room.id}${isCurrent ? " (aici)" : ""}`, bx + bw / 2, by + bh / 2 + 12);
+
+    teleportBtns.push({ x: bx, y: by, w: bw, h: bh, room: room.id });
+  }
+
+  ctx.fillStyle = "#555";
+  ctx.font = "11px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("Apasa \\ sau ESC pentru a inchide", W / 2, startY + 2 * (bh + gap) + 20);
+}
+
+function handleTeleportClick(mx, my) {
+  for (const btn of teleportBtns) {
+    if (mx >= btn.x && mx <= btn.x + btn.w && my >= btn.y && my <= btn.y + btn.h) {
+      teleportMenuActive = false;
+      currentRoom = btn.room;
+      king.x = W * 0.4;
+      king.y = level.groundY - king.h;
+      scarecrow = null;
+      bowChest = null;
+      stairs = null;
+      nightSky = null;
+      trap = null;
+      armorStand = null;
+      if (nightSoundId) { if (sound) sound.stopLoop(nightSoundId); nightSoundId = null; }
+      if (battleMusic) battleMusic.stop();
+      buildWorld();
+      if (currentRoom === 5 && sound && sound.ctx) {
+        nightSoundId = sound.loop("night", 0.35);
+      }
+      if (currentRoom === 7 && battleMusic && !bossDefeated) {
+        if (sound && sound.ctx) battleMusic.load(sound.ctx);
+        setTimeout(() => { if (sound && sound.ctx && currentRoom === 7) battleMusic.play(sound.ctx); }, 300);
+      }
+      return true;
+    }
+  }
+  return false;
 }
 
 function drawPause(ctx, W, H) {
