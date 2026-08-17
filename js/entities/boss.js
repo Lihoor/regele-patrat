@@ -77,7 +77,10 @@ class Boss {
 
     if (this.dying) {
       this.deathTimer += dt;
-      if (this.deathTimer > 2.0) this.dying = false;
+      this.knockback *= 0.9;
+      if (Math.abs(this.knockback) > 0.5) {
+        this.x += this.knockback * dt * 10;
+      }
       return;
     }
 
@@ -153,12 +156,17 @@ class Boss {
     const sy = this.y;
     const sc = this.scale;
 
-    if (this.dying) {
-      const fade = Math.max(0, 1 - this.deathTimer / 2.0);
-      ctx.globalAlpha = fade;
+    if (this.dead && !this.dying) {
+      ctx.save();
+      ctx.translate(sx + this.w / 2, this.groundY);
+      ctx.rotate(Math.PI / 2 * this.facing);
+      ctx.translate(-(sx + this.w / 2), -(this.groundY));
+      ctx.globalAlpha = 0.7;
+    } else if (this.dying) {
+      const fallAngle = Math.min(1, this.deathTimer / 0.8);
       ctx.save();
       ctx.translate(sx + this.w / 2, sy + this.h);
-      ctx.rotate((this.deathTimer * 0.5) * this.facing);
+      ctx.rotate(fallAngle * (Math.PI / 2) * this.facing);
       ctx.translate(-(sx + this.w / 2), -(sy + this.h));
     }
 
@@ -294,13 +302,14 @@ class Boss {
 
     ctx.restore();
 
-    if (this.dying) {
+    if (this.dying || (this.dead && !this.dying)) {
       ctx.restore();
     }
   }
 
   drawHealthBar(ctx) {
     if (this.dead && !this.dying) return;
+    if (this.dying && this.deathTimer > 0.8) return;
     const barW = 200;
     const barH = 16;
     const bx = (ctx.canvas.width / (window.devicePixelRatio || 1) - barW) / 2;
