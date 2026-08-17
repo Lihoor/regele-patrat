@@ -372,28 +372,28 @@ class Boss {
     }
 
     for (const p of this.auraParticles) {
-      const a = Math.max(0, p.life / p.maxLife) * 0.6;
+      const a = Math.max(0, p.life / p.maxLife) * 0.5;
       ctx.fillStyle = this.enraged
-        ? `rgba(255,60,40,${a.toFixed(2)})`
-        : `rgba(200,120,60,${a.toFixed(2)})`;
+        ? `rgba(180,50,40,${a.toFixed(2)})`
+        : `rgba(120,90,50,${a.toFixed(2)})`;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size * (p.life / p.maxLife), 0, Math.PI * 2);
       ctx.fill();
     }
 
     for (const st of this.swordTrail) {
-      const a = (st.life / st.maxLife) * 0.5;
+      const a = (st.life / st.maxLife) * 0.4;
       ctx.strokeStyle = this.enraged
-        ? `rgba(255,120,80,${a.toFixed(2)})`
-        : `rgba(180,200,255,${a.toFixed(2)})`;
-      ctx.lineWidth = 3 * (st.life / st.maxLife);
+        ? `rgba(200,150,100,${a.toFixed(2)})`
+        : `rgba(160,170,200,${a.toFixed(2)})`;
+      ctx.lineWidth = 2 * (st.life / st.maxLife);
       ctx.beginPath();
-      ctx.arc(st.x, st.y, 4 * (st.life / st.maxLife), 0, Math.PI * 2);
+      ctx.arc(st.x, st.y, 3 * (st.life / st.maxLife), 0, Math.PI * 2);
       ctx.stroke();
     }
 
     if (this.hitFlash > 0) {
-      ctx.fillStyle = `rgba(255,100,80,${(this.hitFlash * 5).toFixed(2)})`;
+      ctx.fillStyle = `rgba(255,255,255,${(this.hitFlash * 4).toFixed(2)})`;
       ctx.fillRect(sx - 5, sy - 5, this.w + 10, this.h + 10);
     }
 
@@ -403,110 +403,129 @@ class Boss {
     ctx.translate(-this.w / 2, -this.h);
 
     const isSlamming = this.slamming && this.slamTimer < this.slamDuration * 0.3;
-    const bodySquash = isSlamming ? 1 + Math.sin(this.slamTimer * 20) * 0.03 : 1;
-    const breathe = Math.sin(this.breathT * 2.5) * 2;
+    const bodySquash = isSlamming ? 1 + Math.sin(this.slamTimer * 20) * 0.02 : 1;
+    const breathe = Math.sin(this.breathT * 2.5) * 1.5;
 
-    ctx.fillStyle = "#3a3228";
-    ctx.fillRect(8 * sc, 70 * sc, 10 * sc, 29 * sc);
-    ctx.fillRect(26 * sc, 70 * sc, 10 * sc, 29 * sc);
-    ctx.fillStyle = "#4a4238";
-    ctx.fillRect(10 * sc, 70 * sc, 6 * sc, 28 * sc);
-    ctx.fillRect(28 * sc, 70 * sc, 6 * sc, 28 * sc);
-    ctx.fillStyle = "#2a2218";
-    ctx.fillRect(6 * sc, 94 * sc, 14 * sc, 6 * sc);
-    ctx.fillRect(24 * sc, 94 * sc, 14 * sc, 6 * sc);
+    const steelBase = this.hitFlash > 0 ? 170 : (this.enraged ? 100 : 110);
+    const steelR = steelBase - 10;
+    const steelG = steelBase - 8;
+    const steelB = steelBase + 15;
+    const steel = `rgb(${steelR},${steelG},${steelB})`;
+    const steelDark = `rgb(${steelR - 30},${steelG - 28},${steelB - 15})`;
+    const steelLight = `rgb(${steelR + 20},${steelG + 22},${steelB + 30})`;
+    const steelEdge = `rgb(${steelR + 35},${steelG + 38},${steelB + 45})`;
+    const leather = "#4a3825";
+    const leatherDark = "#322418";
+    const tabardRed = this.enraged ? "#8b2020" : "#7a2828";
+    const tabardRedLight = this.enraged ? "#a83030" : "#963030";
 
-    const armorBase = this.hitFlash > 0 ? 180 : (this.enraged ? 130 : 120);
-    const ab = armorBase;
-    const armorColor = this.enraged
-      ? `rgb(${ab},${ab - 25},${ab - 30})`
-      : `rgb(${ab - 20},${ab - 15},${ab + 10})`;
-    const armorHighlight = this.enraged
-      ? `rgb(${ab + 10},${ab - 15},${ab - 20})`
-      : `rgb(${ab},${ab + 5},${ab + 25})`;
-    const armorDark = this.enraged
-      ? `rgb(${ab - 35},${ab - 40},${ab - 35})`
-      : `rgb(${ab - 40},${ab - 35},${ab - 10})`;
+    ctx.fillStyle = leatherDark;
+    ctx.fillRect(8 * sc, 70 * sc, 11 * sc, 30 * sc);
+    ctx.fillRect(25 * sc, 70 * sc, 11 * sc, 30 * sc);
+    ctx.fillStyle = leather;
+    ctx.fillRect(10 * sc, 70 * sc, 7 * sc, 28 * sc);
+    ctx.fillRect(27 * sc, 70 * sc, 7 * sc, 28 * sc);
+    ctx.fillStyle = steelDark;
+    ctx.fillRect(6 * sc, 94 * sc, 15 * sc, 7 * sc);
+    ctx.fillRect(23 * sc, 94 * sc, 15 * sc, 7 * sc);
+    ctx.fillStyle = steel;
+    ctx.fillRect(8 * sc, 95 * sc, 11 * sc, 5 * sc);
+    ctx.fillRect(25 * sc, 95 * sc, 11 * sc, 5 * sc);
+    ctx.fillStyle = steelEdge;
+    ctx.fillRect(9 * sc, 95 * sc, 9 * sc, 2 * sc);
+    ctx.fillRect(26 * sc, 95 * sc, 9 * sc, 2 * sc);
 
     ctx.save();
     ctx.translate(this.w / 2, 55 * sc);
     ctx.scale(1, bodySquash);
     ctx.translate(-this.w / 2, -55 * sc);
 
-    ctx.fillStyle = armorDark;
-    ctx.fillRect(2 * sc, (56 + breathe * 0.3) * sc, 40 * sc, 20 * sc);
-    ctx.fillStyle = armorColor;
-    ctx.fillRect(4 * sc, (58 + breathe * 0.3) * sc, 36 * sc, 16 * sc);
-    ctx.fillStyle = armorHighlight;
-    ctx.fillRect(6 * sc, (58 + breathe * 0.3) * sc, 32 * sc, 6 * sc);
+    ctx.fillStyle = steelDark;
+    ctx.fillRect(2 * sc, (56 + breathe * 0.3) * sc, 40 * sc, 22 * sc);
+    ctx.fillStyle = steel;
+    ctx.fillRect(4 * sc, (58 + breathe * 0.3) * sc, 36 * sc, 18 * sc);
+    ctx.fillStyle = steelLight;
+    ctx.fillRect(6 * sc, (58 + breathe * 0.3) * sc, 32 * sc, 5 * sc);
 
-    ctx.fillStyle = armorDark;
-    ctx.fillRect(6 * sc, (30 + breathe) * sc, 32 * sc, 30 * sc);
-    ctx.fillStyle = armorColor;
+    ctx.fillStyle = tabardRed;
     ctx.fillRect(8 * sc, (32 + breathe) * sc, 28 * sc, 26 * sc);
-    ctx.fillStyle = armorHighlight;
-    ctx.fillRect(10 * sc, (32 + breathe) * sc, 24 * sc, 8 * sc);
+    ctx.fillStyle = tabardRedLight;
+    ctx.fillRect(10 * sc, (32 + breathe) * sc, 24 * sc, 4 * sc);
+
+    ctx.fillStyle = "#c8a840";
+    ctx.fillRect(18 * sc, (38 + breathe) * sc, 8 * sc, 14 * sc);
+    ctx.fillStyle = "#b09830";
+    ctx.fillRect(20 * sc, (38 + breathe) * sc, 4 * sc, 14 * sc);
+    ctx.fillRect(18 * sc, (42 + breathe) * sc, 8 * sc, 6 * sc);
+
+    ctx.fillStyle = steelDark;
+    ctx.fillRect(6 * sc, (28 + breathe) * sc, 32 * sc, 8 * sc);
+    ctx.fillStyle = leather;
+    ctx.fillRect(10 * sc, (30 + breathe) * sc, 24 * sc, 4 * sc);
+    ctx.fillStyle = steel;
+    ctx.fillRect(18 * sc, (29 + breathe) * sc, 8 * sc, 6 * sc);
 
     ctx.restore();
 
-    ctx.fillStyle = armorDark;
+    ctx.fillStyle = steelDark;
     ctx.fillRect(0, 34 * sc, 6 * sc, 24 * sc);
     ctx.fillRect(38 * sc, 34 * sc, 6 * sc, 24 * sc);
-    ctx.fillStyle = armorColor;
+    ctx.fillStyle = steel;
     ctx.fillRect(1 * sc, 36 * sc, 4 * sc, 20 * sc);
     ctx.fillRect(39 * sc, 36 * sc, 4 * sc, 20 * sc);
 
-    ctx.fillStyle = armorDark;
+    ctx.fillStyle = leatherDark;
     ctx.beginPath();
-    ctx.arc(22 * sc, (22 + breathe) * sc, 18 * sc, 0, Math.PI * 2);
+    ctx.arc(22 * sc, (20 + breathe) * sc, 18 * sc, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = armorColor;
+    ctx.fillStyle = steel;
     ctx.beginPath();
-    ctx.arc(22 * sc, (22 + breathe) * sc, 16 * sc, 0, Math.PI * 2);
+    ctx.arc(22 * sc, (20 + breathe) * sc, 16 * sc, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = steelLight;
+    ctx.beginPath();
+    ctx.arc(22 * sc, (17 + breathe) * sc, 14 * sc, 0, Math.PI);
     ctx.fill();
 
+    ctx.fillStyle = "#2a2218";
+    ctx.beginPath();
+    ctx.arc(22 * sc, (20 + breathe) * sc, 15 * sc, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = steel;
+    ctx.beginPath();
+    ctx.arc(22 * sc, (20 + breathe) * sc, 14 * sc, 0, Math.PI * 2);
+    ctx.fill();
+
+    const visorSlitY = (19 + breathe) * sc;
     ctx.fillStyle = "#1a1210";
-    ctx.fillRect(10 * sc, (18 + breathe) * sc, 24 * sc, 6 * sc);
-    const eyeColor = this.enraged ? "#ff2010" : "#c03030";
-    ctx.fillStyle = eyeColor;
-    const eyeGlow = this.enraged
-      ? 0.8 + Math.sin(this.t * 6) * 0.2
-      : 0.6 + Math.sin(this.t * 3) * 0.3;
-    ctx.globalAlpha = eyeGlow;
-    ctx.beginPath();
-    ctx.arc(16 * sc, (20 + breathe) * sc, this.enraged ? 3.5 * sc : 3 * sc, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(28 * sc, (20 + breathe) * sc, this.enraged ? 3.5 * sc : 3 * sc, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
+    ctx.fillRect(12 * sc, visorSlitY - 1, 20 * sc, 4 * sc);
+    const visorColor = this.enraged
+      ? `rgba(180,60,40,${0.5 + Math.sin(this.t * 4) * 0.2})`
+      : "rgba(12,8,5,0.9)";
+    ctx.fillStyle = visorColor;
+    ctx.fillRect(13 * sc, visorSlitY, 18 * sc, 2 * sc);
 
     if (this.enraged) {
-      ctx.shadowColor = "#ff2010";
-      ctx.shadowBlur = 12;
-      ctx.fillStyle = "#ff2010";
-      ctx.globalAlpha = 0.3 + Math.sin(this.t * 8) * 0.15;
-      ctx.beginPath();
-      ctx.arc(16 * sc, (20 + breathe) * sc, 6 * sc, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(28 * sc, (20 + breathe) * sc, 6 * sc, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.shadowColor = "#a03020";
+      ctx.shadowBlur = 6;
+      ctx.fillStyle = `rgba(180,60,40,${0.15 + Math.sin(this.t * 5) * 0.1})`;
+      ctx.fillRect(12 * sc, visorSlitY - 2, 20 * sc, 6 * sc);
       ctx.shadowBlur = 0;
-      ctx.globalAlpha = 1;
     }
 
-    ctx.fillStyle = armorHighlight;
-    ctx.fillRect(10 * sc, (10 + breathe) * sc, 24 * sc, 4 * sc);
-    ctx.fillStyle = armorDark;
-    ctx.fillRect(14 * sc, (6 + breathe) * sc, 16 * sc, 6 * sc);
+    ctx.fillStyle = steelLight;
+    ctx.fillRect(10 * sc, (8 + breathe) * sc, 24 * sc, 4 * sc);
+    ctx.fillStyle = steelDark;
+    ctx.fillRect(14 * sc, (5 + breathe) * sc, 16 * sc, 5 * sc);
+    ctx.fillStyle = steel;
+    ctx.fillRect(15 * sc, (5 + breathe) * sc, 14 * sc, 3 * sc);
 
-    ctx.fillStyle = armorDark;
+    ctx.fillStyle = steel;
     ctx.beginPath();
-    ctx.moveTo(18 * sc, (26 + breathe) * sc);
-    ctx.lineTo(26 * sc, (26 + breathe) * sc);
-    ctx.lineTo(28 * sc, (30 + breathe) * sc);
-    ctx.lineTo(16 * sc, (30 + breathe) * sc);
+    ctx.moveTo(18 * sc, (34 + breathe) * sc);
+    ctx.lineTo(26 * sc, (34 + breathe) * sc);
+    ctx.lineTo(28 * sc, (37 + breathe) * sc);
+    ctx.lineTo(16 * sc, (37 + breathe) * sc);
     ctx.closePath();
     ctx.fill();
 
@@ -518,36 +537,37 @@ class Boss {
     ctx.translate(38 * sc, (40 + breathe * 0.5) * sc);
     ctx.rotate(swingAngle + slamArmAngle);
 
-    ctx.fillStyle = armorDark;
+    ctx.fillStyle = steelDark;
     ctx.fillRect(0, -4 * sc, 30 * sc, 8 * sc);
-    ctx.fillStyle = armorColor;
+    ctx.fillStyle = steel;
     ctx.fillRect(2 * sc, -3 * sc, 26 * sc, 6 * sc);
 
     ctx.fillStyle = "#5a5a6a";
-    ctx.fillRect(28 * sc, -10 * sc, 8 * sc, 20 * sc);
-    ctx.fillStyle = "#8a8a9a";
-    ctx.fillRect(30 * sc, -8 * sc, 4 * sc, 16 * sc);
-    ctx.fillStyle = "#aaaabc";
-    ctx.fillRect(31 * sc, -6 * sc, 2 * sc, 12 * sc);
+    ctx.fillRect(28 * sc, -12 * sc, 3 * sc, 24 * sc);
+    ctx.fillStyle = "#7a7a8a";
+    ctx.fillRect(30 * sc, -10 * sc, 2 * sc, 20 * sc);
+    ctx.fillStyle = "#9a9aaa";
+    ctx.fillRect(31 * sc, -8 * sc, 1 * sc, 16 * sc);
 
-    if (this.enraged) {
-      ctx.fillStyle = `rgba(255,60,30,${0.3 + Math.sin(this.t * 6) * 0.15})`;
-      ctx.fillRect(30 * sc, -12 * sc, 6 * sc, 24 * sc);
-    }
+    ctx.fillStyle = "#8a8a9a";
+    ctx.fillRect(27 * sc, -14 * sc, 8 * sc, 3 * sc);
+    ctx.fillRect(27 * sc, 11 * sc, 8 * sc, 3 * sc);
 
     ctx.fillStyle = "#4a3a28";
     ctx.fillRect(26 * sc, -3 * sc, 4 * sc, 6 * sc);
+    ctx.fillStyle = "#c8a040";
+    ctx.fillRect(30 * sc, -2 * sc, 3 * sc, 4 * sc);
 
     ctx.restore();
 
-    ctx.fillStyle = armorDark;
+    ctx.fillStyle = steelDark;
     ctx.fillRect(-8 * sc, 36 * sc, 8 * sc, 20 * sc);
-    ctx.fillStyle = armorColor;
+    ctx.fillStyle = steel;
     ctx.fillRect(-6 * sc, 38 * sc, 4 * sc, 16 * sc);
 
-    ctx.fillStyle = "#c8b060";
+    ctx.fillStyle = leather;
     ctx.fillRect(10 * sc, 36 * sc, 24 * sc, 3 * sc);
-    ctx.fillStyle = "#a08830";
+    ctx.fillStyle = "#c8a040";
     ctx.beginPath();
     ctx.arc(22 * sc, 37.5 * sc, 3 * sc, 0, Math.PI * 2);
     ctx.fill();
@@ -558,9 +578,9 @@ class Boss {
       const swAlpha = this.slamShockwave * 0.5;
       const swRadius = (1 - this.slamShockwave) * this.w * 2;
       ctx.strokeStyle = this.enraged
-        ? `rgba(255,80,40,${swAlpha.toFixed(2)})`
-        : `rgba(200,180,100,${swAlpha.toFixed(2)})`;
-      ctx.lineWidth = 4 * this.slamShockwave;
+        ? `rgba(180,100,60,${swAlpha.toFixed(2)})`
+        : `rgba(160,150,120,${swAlpha.toFixed(2)})`;
+      ctx.lineWidth = 3 * this.slamShockwave;
       ctx.beginPath();
       ctx.ellipse(
         sx + this.w / 2,
@@ -572,8 +592,8 @@ class Boss {
       ctx.stroke();
 
       ctx.strokeStyle = this.enraged
-        ? `rgba(255,40,20,${(swAlpha * 0.5).toFixed(2)})`
-        : `rgba(200,180,100,${(swAlpha * 0.5).toFixed(2)})`;
+        ? `rgba(150,60,40,${(swAlpha * 0.4).toFixed(2)})`
+        : `rgba(140,130,100,${(swAlpha * 0.4).toFixed(2)})`;
       ctx.lineWidth = 2 * this.slamShockwave;
       ctx.beginPath();
       ctx.ellipse(
@@ -587,11 +607,11 @@ class Boss {
     }
 
     if (!this.dead && !this.dying) {
-      const glowF = this.enraged ? this.enrageGlow + 0.2 : this.armorGlow;
+      const glowF = this.enraged ? this.enrageGlow + 0.15 : this.armorGlow;
       ctx.strokeStyle = this.enraged
-        ? `rgba(255,60,30,${glowF.toFixed(2)})`
-        : `rgba(200,80,60,${glowF.toFixed(2)})`;
-      ctx.lineWidth = this.enraged ? 3 : 2;
+        ? `rgba(180,60,40,${glowF.toFixed(2)})`
+        : `rgba(140,120,80,${glowF.toFixed(2)})`;
+      ctx.lineWidth = this.enraged ? 2.5 : 1.5;
       ctx.beginPath();
       ctx.ellipse(sx + this.w / 2, sy + this.h * 0.4, this.w * 0.55, this.h * 0.45, 0, 0, Math.PI * 2);
       ctx.stroke();
@@ -606,15 +626,17 @@ class Boss {
       ctx.save();
       ctx.translate(armX, armY);
       ctx.rotate(this.facing * progress * 0.8);
+      ctx.fillStyle = steelDark;
+      ctx.fillRect(0, -2, 35 * sc, 4);
       ctx.fillStyle = "#5a5a6a";
-      ctx.fillRect(0, -2, 40 * sc, 4);
-      ctx.fillStyle = "#aaaabc";
-      ctx.fillRect(38 * sc, -5, 10 * sc, 10);
-      ctx.fillStyle = this.enraged ? "#ff4030" : "#c8b060";
+      ctx.fillRect(33 * sc, -3, 2, 6);
+      ctx.fillStyle = "#7a7a8a";
+      ctx.fillRect(35 * sc, -2, 2, 4);
+      ctx.fillStyle = this.enraged ? "#8b3020" : "#7a5030";
       ctx.beginPath();
-      ctx.moveTo(48 * sc, -8);
-      ctx.lineTo(56 * sc, 0);
-      ctx.lineTo(48 * sc, 8);
+      ctx.moveTo(37 * sc, -5);
+      ctx.lineTo(44 * sc, 0);
+      ctx.lineTo(37 * sc, 5);
       ctx.closePath();
       ctx.fill();
       ctx.restore();
@@ -626,30 +648,28 @@ class Boss {
       ctx.translate(h.x, h.y);
       ctx.rotate(h.vx > 0 ? 0 : Math.PI);
 
+      ctx.fillStyle = "#4a3a28";
+      ctx.fillRect(-12, -1.5, 24, 3);
       ctx.fillStyle = "#5a5a6a";
-      ctx.fillRect(-15, -2, 30, 4);
-      ctx.fillStyle = "#8a8a9a";
-      ctx.fillRect(-17, -3, 6, 6);
-      ctx.fillStyle = "#aaaabc";
-      ctx.fillRect(-16, -2, 4, 4);
+      ctx.fillRect(-2, -2.5, 5, 5);
 
       ctx.fillStyle = this.enraged
-        ? `rgba(255,80,50,${alpha.toFixed(2)})`
-        : `rgba(200,180,100,${alpha.toFixed(2)})`;
+        ? `rgba(160,60,40,${alpha.toFixed(2)})`
+        : `rgba(120,90,60,${alpha.toFixed(2)})`;
       ctx.beginPath();
-      ctx.moveTo(15, -7);
-      ctx.lineTo(24, 0);
-      ctx.lineTo(15, 7);
+      ctx.moveTo(12, -5);
+      ctx.lineTo(18, 0);
+      ctx.lineTo(12, 5);
       ctx.closePath();
       ctx.fill();
 
       ctx.strokeStyle = this.enraged
-        ? `rgba(255,60,30,${(alpha * 0.4).toFixed(2)})`
-        : `rgba(200,180,100,${(alpha * 0.3).toFixed(2)})`;
-      ctx.lineWidth = 2;
+        ? `rgba(140,50,30,${(alpha * 0.3).toFixed(2)})`
+        : `rgba(100,80,50,${(alpha * 0.25).toFixed(2)})`;
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(-15, 0);
-      ctx.lineTo(-40, 0);
+      ctx.moveTo(-12, 0);
+      ctx.lineTo(-28, 0);
       ctx.stroke();
 
       ctx.restore();
