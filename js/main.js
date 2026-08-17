@@ -240,24 +240,29 @@ canvas.addEventListener("click", (e) => {
     return;
   }
 
-  if ((currentRoom === 2 || currentRoom === 3) && scarecrow && !scarecrow.dead && king.heldItem === "sword" && !dialogue.active && !king.sleeping && !king.sneezing && !king.swinging) {
-    const scx = scarecrow.x + scarecrow.w / 2;
-    const kcx = king.x + king.w / 2;
-    const dist = Math.abs(scx - kcx);
-    if (dist < 150) {
-      king.startSwing();
-      const dmg = scarecrow.takeDamage(20);
-      if (dmg > 0) {
-        spawnDamageNumber(scarecrow.x + scarecrow.w / 2, scarecrow.y - 10, dmg);
-        if (scarecrow.dead) {
-          const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
-          trainingPhase = "done";
-          setTimeout(() => {
-            dialogue.show(currentRoom === 3 ? L.bowDone : L.trainingDone);
-          }, 300);
+  if (king.heldItem === "sword" && !dialogue.active && !king.sleeping && !king.sneezing && !king.swinging) {
+    king.startSwing();
+    if (sound) sound.play("sword_swing", 1, 0.5);
+    if (scarecrow && !scarecrow.dead && (currentRoom === 2 || currentRoom === 3)) {
+      const scx = scarecrow.x + scarecrow.w / 2;
+      const kcx = king.x + king.w / 2;
+      const dist = Math.abs(scx - kcx);
+      if (dist < 160) {
+        const dmg = scarecrow.takeDamage(20);
+        if (dmg > 0) {
+          spawnDamageNumber(scarecrow.x + scarecrow.w / 2, scarecrow.y - 10, dmg);
+          if (sound) sound.play("sword_hit", 1, 0.6);
+          if (scarecrow.dead) {
+            const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
+            trainingPhase = "done";
+            setTimeout(() => {
+              dialogue.show(currentRoom === 3 ? L.bowDone : L.trainingDone);
+            }, 300);
+          }
         }
       }
     }
+    return;
   }
 });
 
@@ -314,6 +319,9 @@ function frame(now) {
     updateDamageNumbers(dt);
     updateArrows(dt);
     if (bowCooldown > 0) bowCooldown -= dt;
+    if (inventory) {
+      inventory.hunger = Math.max(0, inventory.hunger - 1.5 * dt);
+    }
   }
 
   if (!dialogue.active && !king.sleeping && !king.sneezing && !king.swinging && !trainingMenuActive) {
@@ -484,8 +492,8 @@ function frame(now) {
 function drawStamina(ctx) {
   const bw = Math.min(260, W * 0.3);
   const bh = 13;
-  const bx = (W - bw) / 2;
-  const by = H - 26;
+  const bx = 18;
+  const by = H - 58 - 18 - 74;
   const p = Math.max(0, Math.min(1, king.stamina / 100));
 
   ctx.fillStyle = "rgba(0,0,0,0.55)";
@@ -507,8 +515,8 @@ function drawStamina(ctx) {
 
   ctx.fillStyle = "rgba(255,255,255,0.8)";
   ctx.font = "bold 11px sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("STAMINA", W / 2, by - 7);
+  ctx.textAlign = "left";
+  ctx.fillText("STAMINA", bx + 4, by - 7);
 }
 
 function roundRect(ctx, x, y, w, h, r) {
@@ -850,6 +858,7 @@ function drawPause(ctx, W, H) {
       bowCooldown = 0;
       inventory = null;
       buildWorld();
+      if (inventory) { inventory.hp = 100; inventory.hunger = 100; }
       pauseState = "main";
     });
   } else if (pauseState === "settings") {
