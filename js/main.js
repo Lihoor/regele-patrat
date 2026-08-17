@@ -197,9 +197,8 @@ function buildWorld() {
       new Furniture("barrel", W * 0.82, level.groundY, 1.7),
     ];
     chest = null;
-    if (!scarecrow2Dead) {
-      scarecrow = new Scarecrow(W * 0.55, level.groundY, 1.25);
-    }
+    scarecrow = new Scarecrow(W * 0.55, level.groundY, 1.25);
+    if (scarecrow2Dead) { scarecrow.hp = 0; scarecrow.dead = true; }
   } else if (currentRoom === 3) {
     torches = [
       new Torch(W * 0.10, level.groundY * 0.20, 2.0),
@@ -214,14 +213,12 @@ function buildWorld() {
       new Furniture("crate", W * 0.72, level.groundY, 1.6),
     ];
     chest = null;
-    if (!scarecrow3Dead) {
-      scarecrow = new Scarecrow(W * 0.58, level.groundY, 1.25);
-    }
-    if (!bowPickedUp) {
-      bowChest = new Chest(W * 0.25, level.groundY, 2.0);
-      bowChest.sound = sound;
-      bowChest.itemType = "bow";
-    }
+    scarecrow = new Scarecrow(W * 0.58, level.groundY, 1.25);
+    if (scarecrow3Dead) { scarecrow.hp = 0; scarecrow.dead = true; }
+    bowChest = new Chest(W * 0.25, level.groundY, 2.0);
+    bowChest.sound = sound;
+    bowChest.itemType = "bow";
+    if (bowPickedUp) { bowChest.state = "picked"; }
   } else if (currentRoom === 4) {
     torches = [
       new Torch(W * 0.08, level.groundY * 0.22, 2.0),
@@ -257,21 +254,15 @@ function buildWorld() {
       new Furniture("candelabra", W * 0.35, level.groundY, 1.9),
       new Furniture("barrel", W * 0.78, level.groundY, 1.8),
     ];
-    if (!foodChestUsed) {
-      chest = new Chest(W * 0.30, level.groundY, 2.0);
-      chest.sound = sound;
-      chest.itemType = "food";
-    } else {
-      chest = null;
-    }
+    chest = new Chest(W * 0.30, level.groundY, 2.0);
+    chest.sound = sound;
+    chest.itemType = "food";
+    if (foodChestUsed) { chest.state = "picked"; }
     stairs = null;
     nightSky = null;
     trap = null;
-    if (!armorCollected) {
-      armorStand = new ArmorStand(W * 0.65, level.groundY, 1.2);
-    } else {
-      armorStand = null;
-    }
+    armorStand = new ArmorStand(W * 0.65, level.groundY, 1.2);
+    if (armorCollected) { armorStand.collected = true; }
     hasArmor = armorCollected;
   } else if (currentRoom === 7) {
     torches = [
