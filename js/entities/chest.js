@@ -55,6 +55,14 @@ class Chest {
     return null;
   }
 
+  useFood(inventory) {
+    if (this.state !== "sword_out" || !this.near || this.itemType !== "food") return false;
+    this.state = "picked";
+    inventory.hp = Math.min(inventory.maxHp, inventory.hp + 40);
+    inventory.hunger = Math.min(inventory.maxHunger, inventory.hunger + 50);
+    return true;
+  }
+
   lightInfo() {
     if (this.state === "picked") return null;
     const f = 0.82 + Math.sin(this.t * 11) * 0.08 + Math.sin(this.t * 17) * 0.05;
@@ -149,6 +157,8 @@ class Chest {
       ctx.restore();
       if (this.itemType === "bow") {
         this.drawChestBow(ctx, 0, sy, 1.1);
+      } else if (this.itemType === "food") {
+        this.drawChestFood(ctx, 0, sy, 1.1);
       } else {
         drawSword(ctx, 0, sy, 1.05, 0);
       }
@@ -271,6 +281,49 @@ class Chest {
     ctx.lineTo(16, 0);
     ctx.closePath();
     ctx.fill();
+
+    ctx.restore();
+  }
+
+  drawChestFood(ctx, x, y, sc) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(sc, sc);
+
+    ctx.fillStyle = "#c4943a";
+    ctx.beginPath();
+    ctx.ellipse(0, -12, 14, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#dab050";
+    ctx.beginPath();
+    ctx.ellipse(0, -14, 12, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#e8c060";
+    ctx.beginPath();
+    ctx.ellipse(-2, -16, 4, 2, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#8b2020";
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 12, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#a03030";
+    ctx.beginPath();
+    ctx.ellipse(0, 4, 10, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#6b1515";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 12, 7, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#8b7040";
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(12, 6);
+    ctx.lineTo(20, 2);
+    ctx.stroke();
 
     ctx.restore();
   }
