@@ -144,10 +144,14 @@ class Chest {
       ctx.globalAlpha = shimmer;
       ctx.fillStyle = "rgba(180,200,255,0.1)";
       ctx.beginPath();
-      ctx.ellipse(0, sy - 38, 12, 20, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, sy - 28, 12, 16, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
-      drawSword(ctx, 0, sy, 1.05, 0);
+      if (this.itemType === "bow") {
+        this.drawChestBow(ctx, 0, sy, 1.1);
+      } else {
+        drawSword(ctx, 0, sy, 1.05, 0);
+      }
     }
 
     ctx.restore();
@@ -209,6 +213,65 @@ class Chest {
       ctx.arc(cx, cy2, r2, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.restore();
+  }
+
+  drawChestBow(ctx, x, y, sc) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(sc, sc);
+
+    ctx.strokeStyle = "#6b4a28";
+    ctx.lineWidth = 5;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(-8, -32);
+    ctx.quadraticCurveTo(-18, 0, -8, 32);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#c4a44a";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(-8, -30);
+    ctx.lineTo(-8, 30);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#b8922e";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(-8, -30);
+    ctx.lineTo(10, 0);
+    ctx.lineTo(-8, 30);
+    ctx.stroke();
+
+    ctx.fillStyle = "#8a6420";
+    ctx.beginPath();
+    ctx.arc(10, 0, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = "#5a3a18";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(10, 0);
+    ctx.lineTo(32, -6);
+    ctx.stroke();
+
+    ctx.fillStyle = "#c8a848";
+    ctx.beginPath();
+    ctx.moveTo(32, -6);
+    ctx.lineTo(28, -12);
+    ctx.lineTo(26, -4);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#b8922e";
+    ctx.beginPath();
+    ctx.moveTo(22, -2);
+    ctx.lineTo(18, -8);
+    ctx.lineTo(16, 0);
+    ctx.closePath();
+    ctx.fill();
+
     ctx.restore();
   }
 }
