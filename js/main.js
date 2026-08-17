@@ -54,6 +54,7 @@ let bossDefeated = false;
 let bossIntroShown = false;
 let gameOver = false;
 let battleMusic = null;
+let nightSoundId = null;
 
 const dialogue = {
   active: false,
@@ -507,6 +508,7 @@ function frame(now) {
         trapTriggered = true;
         inventory.hp = Math.max(0, inventory.hp - 60);
         spawnDamageNumber(king.x + king.w / 2, king.y - 10, 60);
+        if (sound) sound.play("trap", 1, 0.7);
         setTimeout(() => {
           const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
           dialogue.show(L.trapDialogue);
@@ -517,6 +519,7 @@ function frame(now) {
     if (inventory && inventory.hp <= 0 && !gameOver) {
       gameOver = true;
       if (battleMusic) battleMusic.stop();
+      if (nightSoundId) { if (sound) sound.stopLoop(nightSoundId); nightSoundId = null; }
     }
   }
 
@@ -554,7 +557,11 @@ function frame(now) {
           if (sound && sound.ctx) battleMusic.load(sound.ctx);
           setTimeout(() => { if (sound && sound.ctx && currentRoom === 7) battleMusic.play(sound.ctx); }, 500);
         }
+        if (nightSoundId) { if (sound) sound.stopLoop(nightSoundId); nightSoundId = null; }
         buildWorld();
+        if (currentRoom === 5 && sound && sound.ctx) {
+          nightSoundId = sound.loop("night", 0.35);
+        }
         fadeDir = -1;
       };
     } else if (king.x <= 2 && currentRoom > 0 && canLeaveRoom) {
@@ -570,7 +577,11 @@ function frame(now) {
         trap = null;
         armorStand = null;
         if (battleMusic) battleMusic.stop();
+        if (nightSoundId) { if (sound) sound.stopLoop(nightSoundId); nightSoundId = null; }
         buildWorld();
+        if (currentRoom === 5 && sound && sound.ctx) {
+          nightSoundId = sound.loop("night", 0.35);
+        }
         fadeDir = -1;
       };
     }
