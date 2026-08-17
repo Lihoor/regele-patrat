@@ -43,9 +43,12 @@ let trap = null;
 let trapTriggered = false;
 let armorStand = null;
 let hasArmor = false;
+let armorCollected = false;
+let foodChestUsed = false;
 let boss = null;
 let bossDefeated = false;
 let bossIntroShown = false;
+let gameOver = false;
 let battleMusic = null;
 
 const dialogue = {
@@ -226,9 +229,10 @@ function buildWorld() {
     torches = [];
     furniture = [];
     chest = null;
-    stairs = null;
     trap = new Trap(W * 0.38, level.groundY, 64);
-    trapTriggered = false;
+    if (trapTriggered) trap.trigger();
+    armorStand = null;
+    stairs = null;
   } else if (currentRoom === 6) {
     torches = [
       new Torch(W * 0.12, level.groundY * 0.20, 2.0),
@@ -242,14 +246,22 @@ function buildWorld() {
       new Furniture("candelabra", W * 0.35, level.groundY, 1.9),
       new Furniture("barrel", W * 0.78, level.groundY, 1.8),
     ];
-    chest = new Chest(W * 0.30, level.groundY, 2.0);
-    chest.sound = sound;
-    chest.itemType = "food";
+    if (!foodChestUsed) {
+      chest = new Chest(W * 0.30, level.groundY, 2.0);
+      chest.sound = sound;
+      chest.itemType = "food";
+    } else {
+      chest = null;
+    }
     stairs = null;
     nightSky = null;
     trap = null;
-    armorStand = new ArmorStand(W * 0.65, level.groundY, 1.2);
-    hasArmor = false;
+    if (!armorCollected) {
+      armorStand = new ArmorStand(W * 0.65, level.groundY, 1.2);
+    } else {
+      armorStand = null;
+    }
+    hasArmor = armorCollected;
   } else if (currentRoom === 7) {
     torches = [
       new Torch(W * 0.10, level.groundY * 0.18, 2.2),
@@ -266,8 +278,12 @@ function buildWorld() {
     nightSky = null;
     trap = null;
     armorStand = null;
-    if (!boss || boss.dead) {
-      boss = new Boss(W * 0.75, level.groundY, 2.0);
+    if (!bossDefeated) {
+      if (!boss || boss.dead) {
+        boss = new Boss(W * 0.75, level.groundY, 2.0);
+      }
+    } else {
+      boss = null;
     }
   }
 
@@ -300,6 +316,31 @@ canvas.addEventListener("click", (e) => {
     return;
   }
   if (paused) { handlePauseClick(e.clientX, e.clientY); return; }
+  if (gameOver) {
+    gameOver = false;
+    currentRoom = 0;
+    bossDefeated = false;
+    bossIntroShown = false;
+    boss = null;
+    armorCollected = false;
+    foodChestUsed = false;
+    hasArmor = false;
+    trapTriggered = false;
+    inventory.hp = 100;
+    inventory.hunger = 100;
+    inventory.items = [];
+    inventory.selectedSlot = 0;
+    king.x = W * 0.07 - king.w / 2;
+    king.y = level.groundY - king.h;
+    king.sleeping = false;
+    king.heldItem = null;
+    scarecrow = null;
+    bowChest = null;
+    arrows = [];
+    trainingPhase = "none";
+    buildWorld();
+    return;
+  }
   if (trainingMenuActive) { trainingMenuActive = false; return; }
   if (dialogue.active) { dialogue.advance(); return; }
 
@@ -425,8 +466,9 @@ function frame(now) {
       boss.update(dt, king.x, king.w, king.y);
       const dmg = boss.canDamage(king.x, king.w, king.y);
       if (dmg > 0 && inventory) {
-        inventory.hp = Math.max(0, inventory.hp - dmg);
-        spawnDamageNumber(king.x + king.w / 2, king.y - 10, dmg);
+        const finalDmg = hasArmor ? Math.floor(dmg * 0.5) : dmg;
+        inventory.hp = Math.max(0, inventory.hp - finalDmg);
+        spawnDamageNumber(king.x + king.w / 2, king.y - 10, finalDmg);
         king.knockback = boss.facing * 180;
         if (sound) sound.play("hit", 1, 0.5);
       }
@@ -464,6 +506,25 @@ function frame(now) {
       }
     }
     if (trap) trap.update(dt);
+    if (inventory && inventory.hp <= 0 && !gameOver) {
+      gameOver = true;
+      if (battleMusic) battleMusic.stop();
+    }
+  }
+
+  if (gameOver) {
+    ctx.fillStyle = "rgba(0,0,0,0.85)";
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#c0392b";
+    ctx.font = "bold 56px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("YOU DIED", W / 2, H / 2 - 40);
+    ctx.fillStyle = "#888";
+    ctx.font = "20px sans-serif";
+    ctx.fillText("Click to try again", W / 2, H / 2 + 30);
+    requestAnimationFrame(frame);
+    return;
   }
 
   if (!dialogue.active && !king.sleeping && !king.sneezing && !king.swinging && !trainingMenuActive) {
@@ -480,7 +541,6 @@ function frame(now) {
         nightSky = null;
         trap = null;
         armorStand = null;
-        if (currentRoom !== 7) boss = null;
         if (currentRoom !== 7 && battleMusic) battleMusic.stop();
         if (currentRoom === 7 && battleMusic) {
           if (sound && sound.ctx) battleMusic.load(sound.ctx);
@@ -501,7 +561,6 @@ function frame(now) {
         nightSky = null;
         trap = null;
         armorStand = null;
-        if (currentRoom !== 7) boss = null;
         if (battleMusic) battleMusic.stop();
         buildWorld();
         fadeDir = -1;
@@ -558,6 +617,7 @@ function frame(now) {
     if (currentRoom === 6 && armorStand && !hasArmor) {
       if (armorStand.interact()) {
         hasArmor = true;
+        armorCollected = true;
         const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
         dialogue.show(L.armorDialogue);
       }
@@ -567,6 +627,7 @@ function frame(now) {
         chest.interact();
       } else if (chest.state === "sword_out" && chest.near) {
         if (chest.useFood(inventory)) {
+          foodChestUsed = true;
           spawnDamageNumber(king.x + king.w / 2, king.y - 10, "+40HP");
         }
       }
@@ -848,6 +909,29 @@ function updateArrows(dt) {
             dialogue.show(currentRoom === 3 ? L.bowDone : L.trainingDone);
           }, 300);
         }
+        continue;
+      }
+    }
+
+    if (boss && !boss.dead && currentRoom === 7) {
+      const bx = boss.x, by = boss.y, bw = boss.w, bh = boss.h;
+      if (a.x > bx && a.x < bx + bw && a.y > by && a.y < by + bh) {
+        const dmg = boss.takeDamage(15);
+        if (dmg > 0) {
+          spawnDamageNumber(a.x, a.y - 10, dmg);
+          if (sound) sound.play("sword_hit", 1, 0.5);
+          if (boss.dead) {
+            bossDefeated = true;
+            if (battleMusic) battleMusic.stop();
+            setTimeout(() => {
+              const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
+              dialogue.show(L.bossDefeated);
+            }, 1200);
+          }
+        }
+        a.stuck = true;
+        a.vx = 0;
+        a.vy = 0;
         continue;
       }
     }
