@@ -2,8 +2,12 @@ class Inventory {
   constructor() {
     this.slots = [null, null, null];
     this.equipped = -1;
-    this.slotSize = 42;
-    this.padding = 6;
+    this.slotSize = 58;
+    this.padding = 8;
+    this.hp = 100;
+    this.maxHp = 100;
+    this.hunger = 100;
+    this.maxHunger = 100;
   }
 
   add(item) {
@@ -36,47 +40,87 @@ class Inventory {
     if (!hasItems) return;
 
     const total = this.slots.length;
-    const gap = 6;
-    const totalW = total * this.slotSize + (total - 1) * gap;
+    const gap = this.padding;
     const startX = 18;
-    const startY = H - 62;
+    const slotY = H - this.slotSize - 18;
+    const barW = total * this.slotSize + (total - 1) * gap;
+    const barX = startX;
+
+    this._drawBar(ctx, barX, slotY - 52, barW, 18, this.hp, this.maxHp, "#c03030", "#8a1818", "HP");
+    this._drawBar(ctx, barX, slotY - 30, barW, 18, this.hunger, this.maxHunger, "#7a9a30", "#4a6018", "FOOD");
 
     for (let i = 0; i < total; i++) {
       const x = startX + i * (this.slotSize + gap);
-      const y = startY;
+      const y = slotY;
       const item = this.slots[i];
 
       const isEquipped = this.equipped === i;
 
-      ctx.fillStyle = "rgba(0,0,0,0.55)";
-      roundRect(ctx, x - 1, y - 1, this.slotSize + 2, this.slotSize + 2, 5);
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      roundRect(ctx, x - 2, y - 2, this.slotSize + 4, this.slotSize + 4, 7);
       ctx.fill();
 
-      ctx.fillStyle = isEquipped ? "rgba(220,190,90,0.35)" : "rgba(60,50,40,0.5)";
-      roundRect(ctx, x, y, this.slotSize, this.slotSize, 4);
+      ctx.fillStyle = isEquipped ? "rgba(220,190,90,0.4)" : "rgba(50,40,30,0.55)";
+      roundRect(ctx, x, y, this.slotSize, this.slotSize, 5);
       ctx.fill();
 
-      ctx.strokeStyle = isEquipped ? "#e8c84a" : "rgba(180,160,120,0.4)";
-      ctx.lineWidth = isEquipped ? 2 : 1;
-      roundRect(ctx, x, y, this.slotSize, this.slotSize, 4);
+      ctx.strokeStyle = isEquipped ? "#e8c84a" : "rgba(160,140,100,0.4)";
+      ctx.lineWidth = isEquipped ? 2.5 : 1.2;
+      roundRect(ctx, x, y, this.slotSize, this.slotSize, 5);
       ctx.stroke();
 
       if (item === "sword") {
         const cx = x + this.slotSize / 2;
-        const cy = y + this.slotSize / 2 + 12;
-        drawSword(ctx, cx, cy, 0.55, 0);
+        const cy = y + this.slotSize / 2 + 14;
+        drawSword(ctx, cx, cy, 0.7, 0);
       } else if (item === "bow") {
         const cx = x + this.slotSize / 2;
         const cy = y + this.slotSize / 2;
-        this.drawBow(ctx, cx, cy, 0.7);
+        this.drawBow(ctx, cx, cy, 0.9);
       }
 
-      ctx.fillStyle = "rgba(255,255,255,0.65)";
-      ctx.font = "bold 10px sans-serif";
+      ctx.fillStyle = "rgba(255,255,255,0.7)";
+      ctx.font = "bold 13px sans-serif";
       ctx.textAlign = "left";
       ctx.textBaseline = "top";
-      ctx.fillText(String(i + 1), x + 4, y + 3);
+      ctx.fillText(String(i + 1), x + 5, y + 4);
     }
+  }
+
+  _drawBar(ctx, x, y, w, h, val, max, colorDark, colorLight, label) {
+    const p = Math.max(0, Math.min(1, val / max));
+
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    roundRect(ctx, x - 2, y - 2, w + 4, h + 4, 5);
+    ctx.fill();
+
+    ctx.fillStyle = colorDark;
+    roundRect(ctx, x, y, w, h, 4);
+    ctx.fill();
+
+    if (p > 0.01) {
+      ctx.fillStyle = colorLight;
+      roundRect(ctx, x, y, w * p, h, 4);
+      ctx.fill();
+
+      ctx.fillStyle = "rgba(255,255,255,0.2)";
+      roundRect(ctx, x, y, w * p, h * 0.4, 4);
+      ctx.fill();
+    }
+
+    ctx.strokeStyle = "rgba(255,255,255,0.15)";
+    ctx.lineWidth = 1;
+    roundRect(ctx, x, y, w, h, 4);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.font = "bold 11px sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, x + 8, y + h / 2);
+
+    ctx.textAlign = "right";
+    ctx.fillText(Math.round(val) + "/" + max, x + w - 8, y + h / 2);
   }
 
   drawBow(ctx, cx, cy, sc) {
