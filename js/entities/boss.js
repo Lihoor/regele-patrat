@@ -22,7 +22,7 @@ class Boss {
     this.moveDir = 0;
     this.moveSpeed = 120;
     this.attackCooldown = 0;
-    this.attackDamage = 25;
+    this.attackDamage = 18;
     this.attacking = false;
     this.attackTimer = 0;
     this.attackDuration = 0.55;
@@ -39,7 +39,7 @@ class Boss {
     this.slamming = false;
     this.slamTimer = 0;
     this.slamDuration = 0.8;
-    this.slamDamage = 35;
+    this.slamDamage = 22;
     this.slamShockwave = 0;
     this.swordTrail = [];
     this.enrageGlow = 0;
@@ -51,6 +51,11 @@ class Boss {
     this.jumpY = 0;
     this.jumpVY = 0;
     this.kingY = 0;
+    this.harpoons = [];
+    this.harpoonCooldown = 0;
+    this.throwingHarpoon = false;
+    this.throwTimer = 0;
+    this.throwDuration = 0.5;
   }
 
   get centerX() { return this.x + this.w / 2; }
@@ -69,7 +74,7 @@ class Boss {
       this.enraged = true;
       this.moveSpeed = 170;
       this.chargeSpeed = 450;
-      this.attackDamage = 30;
+      this.attackDamage = 22;
       this.attackDuration = 0.45;
     }
 
@@ -127,6 +132,34 @@ class Boss {
       p.life -= dt;
       if (p.life <= 0) this.auraParticles.splice(i, 1);
     }
+
+    if (this.throwingHarpoon) {
+      this.throwTimer += dt;
+      if (this.throwTimer >= this.throwDuration) {
+        this.throwingHarpoon = false;
+        this.harpoons.push({
+          x: this.x + this.w / 2 + this.facing * this.w * 0.5,
+          y: this.y + this.h * 0.38,
+          vx: this.facing * 450,
+          damage: this.enraged ? 18 : 14,
+          life: 0,
+          maxLife: 2.5,
+        });
+        this.harpoonCooldown = this.enraged ? 1.2 + Math.random() * 0.8 : 1.8 + Math.random() * 1.0;
+        this.attackCooldown = 0.5;
+      }
+      return;
+    }
+
+    for (let i = this.harpoons.length - 1; i >= 0; i--) {
+      const h = this.harpoons[i];
+      h.x += h.vx * dt;
+      h.life += dt;
+      if (h.life > h.maxLife || h.x < -100 || h.x > W + 100) {
+        this.harpoons.splice(i, 1);
+      }
+    }
+    if (this.harpoonCooldown > 0) this.harpoonCooldown -= dt;
 
     if (this.dying) {
       this.deathTimer += dt;
@@ -211,17 +244,17 @@ class Boss {
     } else if (dist < 220 * this.scale && this.attackCooldown <= 0) {
       const kingInAir = kingY < this.groundY - 120;
       const roll = Math.random();
-      if (kingInAir && roll < 0.55) {
+      if (kingInAir && roll < 0.5) {
         this.jumpAttack = true;
         this.jumpAttackTimer = 0;
         this.jumpY = 0;
         this.jumpVY = -700;
         this.state = "jump";
-      } else if (roll < 0.28) {
+      } else if (roll < 0.25) {
         this.charging = true;
         this.chargeTimer = 0;
         this.state = "charge";
-      } else if (roll < 0.5) {
+      } else if (roll < 0.48) {
         this.attacking = true;
         this.attackTimer = 0;
         this.state = "attack";
@@ -234,6 +267,10 @@ class Boss {
         this.attackTimer = 0;
         this.state = "attack";
       }
+    } else if (dist >= 220 * this.scale && dist < 600 && this.harpoonCooldown <= 0 && this.attackCooldown <= 0) {
+      this.throwingHarpoon = true;
+      this.throwTimer = 0;
+      this.state = "harpoon";
     } else if (dist > 300 * this.scale || Math.random() < 0.03) {
       this.state = "walk";
     }
@@ -260,7 +297,7 @@ class Boss {
         const bcx = this.centerX;
         const dx = Math.abs(kcx - bcx);
         if (dx < this.w * 2.0) {
-          return this.enraged ? 40 : 30;
+          return this.enraged ? 28 : 22;
         }
       }
       return 0;
@@ -272,7 +309,7 @@ class Boss {
         const kcx = kingX + kingW / 2;
         const dx = Math.abs(kcx - this.centerX);
         if (dx < this.w * 2.2) {
-          return this.enraged ? this.slamDamage : 25;
+          return this.enraged ? this.slamDamage : 18;
         }
       }
       return 0;
@@ -283,7 +320,7 @@ class Boss {
       const bcx = this.centerX;
       const dx = Math.abs(kcx - bcx);
       if (dx < (this.w / 2 + kingW / 2 + 20) * 1.3) {
-        return this.enraged ? 30 : 20;
+        return this.enraged ? 22 : 15;
       }
       return 0;
     }
@@ -296,6 +333,19 @@ class Boss {
     const dx = Math.abs(kcx - bcx);
     if (dx < (this.w / 2 + kingW / 2 + 25) * 1.2) {
       return this.attackDamage;
+    }
+    return 0;
+  }
+
+  checkHarpoonHit(kingX, kingW, kingY, kingH) {
+    if (this.dead || this.dying) return 0;
+    for (let i = this.harpoons.length - 1; i >= 0; i--) {
+      const h = this.harpoons[i];
+      if (h.x > kingX && h.x < kingX + kingW && h.y > kingY && h.y < kingY + kingH) {
+        const dmg = h.damage;
+        this.harpoons.splice(i, 1);
+        return dmg;
+      }
     }
     return 0;
   }
@@ -548,6 +598,62 @@ class Boss {
     }
 
     ctx.restore();
+
+    if (this.throwingHarpoon) {
+      const progress = this.throwTimer / this.throwDuration;
+      const armX = sx + this.w / 2 + this.facing * 20 * sc;
+      const armY = sy + this.h * 0.38;
+      ctx.save();
+      ctx.translate(armX, armY);
+      ctx.rotate(this.facing * progress * 0.8);
+      ctx.fillStyle = "#5a5a6a";
+      ctx.fillRect(0, -2, 40 * sc, 4);
+      ctx.fillStyle = "#aaaabc";
+      ctx.fillRect(38 * sc, -5, 10 * sc, 10);
+      ctx.fillStyle = this.enraged ? "#ff4030" : "#c8b060";
+      ctx.beginPath();
+      ctx.moveTo(48 * sc, -8);
+      ctx.lineTo(56 * sc, 0);
+      ctx.lineTo(48 * sc, 8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    for (const h of this.harpoons) {
+      const alpha = Math.max(0, 1 - h.life / h.maxLife * 0.3);
+      ctx.save();
+      ctx.translate(h.x, h.y);
+      ctx.rotate(h.vx > 0 ? 0 : Math.PI);
+
+      ctx.fillStyle = "#5a5a6a";
+      ctx.fillRect(-15, -2, 30, 4);
+      ctx.fillStyle = "#8a8a9a";
+      ctx.fillRect(-17, -3, 6, 6);
+      ctx.fillStyle = "#aaaabc";
+      ctx.fillRect(-16, -2, 4, 4);
+
+      ctx.fillStyle = this.enraged
+        ? `rgba(255,80,50,${alpha.toFixed(2)})`
+        : `rgba(200,180,100,${alpha.toFixed(2)})`;
+      ctx.beginPath();
+      ctx.moveTo(15, -7);
+      ctx.lineTo(24, 0);
+      ctx.lineTo(15, 7);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = this.enraged
+        ? `rgba(255,60,30,${(alpha * 0.4).toFixed(2)})`
+        : `rgba(200,180,100,${(alpha * 0.3).toFixed(2)})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-15, 0);
+      ctx.lineTo(-40, 0);
+      ctx.stroke();
+
+      ctx.restore();
+    }
 
     if (this.dying || (this.dead && !this.dying)) {
       ctx.restore();
