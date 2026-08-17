@@ -58,6 +58,8 @@ const LANG = {
     bowDone: "Gata, esti pregatit pentru lupta!",
     roomTraining: "Sala de Antrenament",
     roomBow: "Sala de Arc",
+    trapDialogue: "Ouch! Cine a pus asta aici?!",
+    roomBalcony: "Balconul Castelului",
   },
   en: {
     title: "The Sleeping King",
@@ -118,6 +120,8 @@ const LANG = {
     bowDone: "Done, you are ready for battle!",
     roomTraining: "Training Hall",
     roomBow: "Archery Hall",
+    trapDialogue: "Ouch! Who put that there?!",
+    roomBalcony: "Castle Balcony",
   },
 };
 
