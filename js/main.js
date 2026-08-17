@@ -69,8 +69,8 @@ const dialogue = {
   },
   draw(ctx, W, H) {
     if (!this.active) return;
-    const boxH = 90;
-    const boxY = H - boxH - 20;
+    const boxH = 75;
+    const boxY = H - boxH - 140;
     ctx.fillStyle = "rgba(10,8,5,0.88)";
     roundRect(ctx, 40, boxY, W - 80, boxH, 10);
     ctx.fill();
@@ -80,16 +80,16 @@ const dialogue = {
     ctx.stroke();
     const txt = this.text.substring(0, this.shown);
     ctx.fillStyle = "#e8d8a0";
-    ctx.font = "18px Georgia, serif";
+    ctx.font = "16px Georgia, serif";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
     const maxW = W - 120;
     const words = txt.split(" ");
-    let line = "", ly = boxY + 18;
+    let line = "", ly = boxY + 14;
     for (const w of words) {
       const test = line + (line ? " " : "") + w;
       if (ctx.measureText(test).width > maxW && line) {
-        ctx.fillText(line, 60, ly); line = w; ly += 24;
+        ctx.fillText(line, 60, ly); line = w; ly += 22;
       } else line = test;
     }
     if (line) ctx.fillText(line, 60, ly);
