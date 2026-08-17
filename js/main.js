@@ -35,6 +35,8 @@ let trainingPhase = "none";
 let trainingMenuActive = false;
 let damageNumbers = [];
 let bowChest = null;
+let arrows = [];
+let bowCooldown = 0;
 
 const dialogue = {
   active: false,
@@ -229,6 +231,15 @@ canvas.addEventListener("click", (e) => {
   if (trainingMenuActive) { trainingMenuActive = false; return; }
   if (dialogue.active) { dialogue.advance(); return; }
 
+  if (king.heldItem === "bow" && !dialogue.active && !king.sleeping && !king.sneezing && !king.swinging && bowCooldown <= 0) {
+    const fromX = king.x + king.w / 2 + king.facing * 20;
+    const fromY = king.y + king.h * 0.45;
+    shootArrow(fromX, fromY, e.clientX, e.clientY);
+    bowCooldown = 0.4;
+    if (sound) sound.play("bow", 1, 0.5);
+    return;
+  }
+
   if ((currentRoom === 2 || currentRoom === 3) && scarecrow && !scarecrow.dead && king.heldItem === "sword" && !dialogue.active && !king.sleeping && !king.sneezing && !king.swinging) {
     const scx = scarecrow.x + scarecrow.w / 2;
     const kcx = king.x + king.w / 2;
@@ -301,6 +312,8 @@ function frame(now) {
     if ((currentRoom === 2 || currentRoom === 3) && scarecrow) scarecrow.update(dt, king.x, king.w);
     if (currentRoom === 3 && bowChest) bowChest.update(dt, king.x, king.w);
     updateDamageNumbers(dt);
+    updateArrows(dt);
+    if (bowCooldown > 0) bowCooldown -= dt;
   }
 
   if (!dialogue.active && !king.sleeping && !king.sneezing && !king.swinging && !trainingMenuActive) {
@@ -441,6 +454,7 @@ function frame(now) {
   }
 
   drawDamageNumbers(ctx);
+  drawArrows(ctx);
 
   dialogue.update(dt);
   dialogue.draw(ctx, W, H);
@@ -542,6 +556,155 @@ function drawDamageNumbers(ctx) {
     ctx.textBaseline = "middle";
     ctx.strokeText(`-${d.amount}`, d.x, d.y);
     ctx.fillText(`-${d.amount}`, d.x, d.y);
+    ctx.restore();
+  }
+}
+
+function shootArrow(fromX, fromY, toX, toY) {
+  const dx = toX - fromX;
+  const dy = toY - fromY;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const g = 600;
+  const tFlight = Math.max(0.35, Math.min(1.0, dist / 600));
+  const vx = dx / tFlight;
+  const vy = (dy - 0.5 * g * tFlight * tFlight) / tFlight;
+
+  arrows.push({
+    x: fromX,
+    y: fromY,
+    vx: vx,
+    vy: vy,
+    gravity: g,
+    time: 0,
+    maxTime: tFlight + 0.15,
+    active: true,
+    stuck: false,
+    stuckTimer: 0,
+    angle: 0,
+    trail: [],
+  });
+}
+
+function updateArrows(dt) {
+  for (let i = arrows.length - 1; i >= 0; i--) {
+    const a = arrows[i];
+    if (!a.active) { arrows.splice(i, 1); continue; }
+    if (a.stuck) {
+      a.stuckTimer += dt;
+      if (a.stuckTimer > 2.5) { a.active = false; }
+      continue;
+    }
+    a.time += dt;
+    a.x += a.vx * dt;
+    a.vy += a.gravity * dt;
+    a.y += a.vy * dt;
+    a.angle = Math.atan2(a.vy, a.vx);
+    a.trail.push({ x: a.x, y: a.y, t: 0 });
+    if (a.trail.length > 12) a.trail.shift();
+    for (const tr of a.trail) tr.t += dt;
+
+    if (scarecrow && !scarecrow.dead && (currentRoom === 2 || currentRoom === 3)) {
+      const sx = scarecrow.x, sy = scarecrow.y, sw = scarecrow.w, sh = scarecrow.h;
+      if (a.x > sx && a.x < sx + sw && a.y > sy && a.y < sy + sh) {
+        const dmg = scarecrow.takeDamage(15);
+        if (dmg > 0) spawnDamageNumber(a.x, a.y - 10, dmg);
+        a.stuck = true;
+        a.vx = 0;
+        a.vy = 0;
+        if (scarecrow.dead) {
+          const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
+          trainingPhase = "done";
+          setTimeout(() => {
+            dialogue.show(currentRoom === 3 ? L.bowDone : L.trainingDone);
+          }, 300);
+        }
+        continue;
+      }
+    }
+
+    if (a.y >= level.groundY - 2 || a.time >= a.maxTime || a.x < -50 || a.x > W + 50) {
+      a.stuck = true;
+      a.y = Math.min(a.y, level.groundY - 2);
+      a.vx = 0;
+      a.vy = 0;
+    }
+  }
+}
+
+function drawArrows(ctx) {
+  for (const a of arrows) {
+    if (!a.active) continue;
+
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    for (let i = 0; i < a.trail.length; i++) {
+      const tr = a.trail[i];
+      const ta = Math.max(0, 0.3 - tr.t * 0.8);
+      if (ta <= 0) continue;
+      ctx.globalAlpha = ta;
+      ctx.fillStyle = "#c8a040";
+      ctx.beginPath();
+      ctx.arc(tr.x, tr.y, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.save();
+    ctx.translate(a.x, a.y);
+    ctx.rotate(a.angle);
+
+    ctx.strokeStyle = "#5a3a18";
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(-22, 0);
+    ctx.lineTo(14, 0);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#7a5428";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(-22, 0);
+    ctx.lineTo(-28, 0);
+    ctx.stroke();
+
+    ctx.fillStyle = "#c8a848";
+    ctx.beginPath();
+    ctx.moveTo(18, 0);
+    ctx.lineTo(12, -4);
+    ctx.lineTo(10, 0);
+    ctx.lineTo(12, 4);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#b8922e";
+    ctx.beginPath();
+    ctx.moveTo(10, 0);
+    ctx.lineTo(6, -3);
+    ctx.lineTo(4, 0);
+    ctx.lineTo(6, 3);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#d44030";
+    ctx.beginPath();
+    ctx.moveTo(-22, 0);
+    ctx.lineTo(-28, -5);
+    ctx.lineTo(-26, 0);
+    ctx.lineTo(-28, 5);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#a03020";
+    ctx.beginPath();
+    ctx.moveTo(-26, 0);
+    ctx.lineTo(-30, -3);
+    ctx.lineTo(-32, 0);
+    ctx.lineTo(-30, 3);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
     ctx.restore();
   }
 }
@@ -670,6 +833,7 @@ function drawPause(ctx, W, H) {
       pauseState = "main";
       trainingMenuActive = false;
       damageNumbers = [];
+      arrows = [];
     });
     _pauseBtn(ctx, W/2 - bw/2, H*0.66, bw, bh, L.restart, () => {
       paused = false;
@@ -682,6 +846,8 @@ function drawPause(ctx, W, H) {
       trainingPhase = "none";
       trainingMenuActive = false;
       damageNumbers = [];
+      arrows = [];
+      bowCooldown = 0;
       inventory = null;
       buildWorld();
       pauseState = "main";
