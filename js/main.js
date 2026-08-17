@@ -484,12 +484,13 @@ function frame(now) {
         dialogue.show(L.armorDialogue);
       }
     }
-    if (currentRoom === 6 && chest && chest.state === "closed") {
-      chest.interact();
-    }
-    if (currentRoom === 6 && chest && chest.state === "sword_out" && chest.near) {
-      if (chest.useFood(inventory)) {
-        spawnDamageNumber(king.x + king.w / 2, king.y - 10, "+40HP");
+    if (currentRoom === 6 && chest && chest.itemType === "food") {
+      if (chest.state === "closed" && chest.near) {
+        chest.interact();
+      } else if (chest.state === "sword_out" && chest.near) {
+        if (chest.useFood(inventory)) {
+          spawnDamageNumber(king.x + king.w / 2, king.y - 10, "+40HP");
+        }
       }
     }
   }
