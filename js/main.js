@@ -45,6 +45,10 @@ let armorStand = null;
 let hasArmor = false;
 let armorCollected = false;
 let foodChestUsed = false;
+let swordChestOpened = false;
+let bowPickedUp = false;
+let scarecrow2Dead = false;
+let scarecrow3Dead = false;
 let boss = null;
 let bossDefeated = false;
 let bossIntroShown = false;
@@ -161,6 +165,7 @@ function buildWorld() {
     ];
     chest = new Chest(W * 0.20, level.groundY, 2.2);
     chest.sound = sound;
+    if (swordChestOpened) { chest.state = "picked"; }
   } else if (currentRoom === 1) {
     torches = [
       new Torch(W * 0.10, level.groundY * 0.20, 2.0),
@@ -192,7 +197,9 @@ function buildWorld() {
       new Furniture("barrel", W * 0.82, level.groundY, 1.7),
     ];
     chest = null;
-    scarecrow = new Scarecrow(W * 0.55, level.groundY, 1.25);
+    if (!scarecrow2Dead) {
+      scarecrow = new Scarecrow(W * 0.55, level.groundY, 1.25);
+    }
   } else if (currentRoom === 3) {
     torches = [
       new Torch(W * 0.10, level.groundY * 0.20, 2.0),
@@ -207,10 +214,14 @@ function buildWorld() {
       new Furniture("crate", W * 0.72, level.groundY, 1.6),
     ];
     chest = null;
-    scarecrow = new Scarecrow(W * 0.58, level.groundY, 1.25);
-    bowChest = new Chest(W * 0.25, level.groundY, 2.0);
-    bowChest.sound = sound;
-    bowChest.itemType = "bow";
+    if (!scarecrow3Dead) {
+      scarecrow = new Scarecrow(W * 0.58, level.groundY, 1.25);
+    }
+    if (!bowPickedUp) {
+      bowChest = new Chest(W * 0.25, level.groundY, 2.0);
+      bowChest.sound = sound;
+      bowChest.itemType = "bow";
+    }
   } else if (currentRoom === 4) {
     torches = [
       new Torch(W * 0.08, level.groundY * 0.22, 2.0),
@@ -324,6 +335,10 @@ canvas.addEventListener("click", (e) => {
     boss = null;
     armorCollected = false;
     foodChestUsed = false;
+    swordChestOpened = false;
+    bowPickedUp = false;
+    scarecrow2Dead = false;
+    scarecrow3Dead = false;
     hasArmor = false;
     trapTriggered = false;
     inventory.hp = 100;
@@ -385,6 +400,8 @@ canvas.addEventListener("click", (e) => {
           spawnDamageNumber(scarecrow.x + scarecrow.w / 2, scarecrow.y - 10, dmg);
           if (sound) sound.play("sword_hit", 1, 0.6);
           if (scarecrow.dead) {
+            if (currentRoom === 2) scarecrow2Dead = true;
+            if (currentRoom === 3) scarecrow3Dead = true;
             const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
             trainingPhase = "done";
             setTimeout(() => {
@@ -586,7 +603,7 @@ function frame(now) {
   if (input.consumeInteract()) {
     if (currentRoom === 0 && chest) {
       const result = chest.interact();
-      if (result === "sword") inventory.add("sword");
+      if (result === "sword") { inventory.add("sword"); swordChestOpened = true; }
     }
     if (currentRoom === 1 && knight && knight.promptAlpha > 0.5 && !npcTalked) {
       npcTalked = true;
@@ -604,7 +621,7 @@ function frame(now) {
             trainingPhase = "menu";
             trainingMenuActive = true;
           };
-  } else if (currentRoom === 6) {
+        } else {
           trainingPhase = "menu";
           trainingMenuActive = true;
         }
@@ -612,7 +629,7 @@ function frame(now) {
     }
     if (currentRoom === 3 && bowChest && !inventory.hasItem("bow")) {
       const result = bowChest.interact();
-      if (result === "bow") inventory.add("bow");
+      if (result === "bow") { inventory.add("bow"); bowPickedUp = true; }
     }
     if (currentRoom === 6 && armorStand && !hasArmor) {
       if (armorStand.interact()) {
@@ -903,6 +920,8 @@ function updateArrows(dt) {
         a.vx = 0;
         a.vy = 0;
         if (scarecrow.dead) {
+          if (currentRoom === 2) scarecrow2Dead = true;
+          if (currentRoom === 3) scarecrow3Dead = true;
           const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
           trainingPhase = "done";
           setTimeout(() => {
