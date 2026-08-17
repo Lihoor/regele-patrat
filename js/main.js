@@ -37,6 +37,8 @@ let damageNumbers = [];
 let bowChest = null;
 let arrows = [];
 let bowCooldown = 0;
+let stairs = null;
+let nightSky = null;
 
 const dialogue = {
   active: false,
@@ -180,7 +182,7 @@ function buildWorld() {
     ];
     chest = null;
     scarecrow = new Scarecrow(W * 0.55, level.groundY, 1.25);
-  } else {
+  } else if (currentRoom === 3) {
     torches = [
       new Torch(W * 0.10, level.groundY * 0.20, 2.0),
       new Torch(W * 0.35, level.groundY * 0.28, 1.9),
@@ -198,6 +200,25 @@ function buildWorld() {
     bowChest = new Chest(W * 0.25, level.groundY, 2.0);
     bowChest.sound = sound;
     bowChest.itemType = "bow";
+  } else if (currentRoom === 4) {
+    torches = [
+      new Torch(W * 0.08, level.groundY * 0.22, 2.0),
+      new Torch(W * 0.50, level.groundY * 0.18, 1.9),
+      new Torch(W * 0.85, level.groundY * 0.28, 2.1),
+    ];
+    furniture = [
+      new Furniture("crate", W * 0.15, level.groundY, 1.7),
+      new Furniture("barrel", W * 0.35, level.groundY, 1.8),
+      new Furniture("candelabra", W * 0.70, level.groundY, 1.9),
+    ];
+    chest = null;
+    stairs = new Stairs(W * 0.58, level.groundY, 8, 70, 38);
+  } else {
+    nightSky = new NightSky(W, H);
+    torches = [];
+    furniture = [];
+    chest = null;
+    stairs = null;
   }
 
   if (!inventory) inventory = new Inventory();
@@ -336,7 +357,7 @@ function frame(now) {
   }
 
   if (!dialogue.active && !king.sleeping && !king.sneezing && !king.swinging && !trainingMenuActive) {
-    if (king.x + king.w >= W - 2 && currentRoom < 3) {
+    if (king.x + king.w >= W - 2 && currentRoom < 5) {
       fadeDir = 1;
       fadeCallback = () => {
         currentRoom++;
@@ -344,6 +365,8 @@ function frame(now) {
         king.y = level.groundY - king.h;
         scarecrow = null;
         bowChest = null;
+        stairs = null;
+        nightSky = null;
         buildWorld();
         fadeDir = -1;
       };
@@ -355,6 +378,8 @@ function frame(now) {
         king.y = level.groundY - king.h;
         scarecrow = null;
         bowChest = null;
+        stairs = null;
+        nightSky = null;
         buildWorld();
         fadeDir = -1;
       };
@@ -438,13 +463,35 @@ function frame(now) {
     r: Math.max(250, W * 0.18),
   });
 
-  wall.draw(ctx);
-  level.draw(ctx);
+  if (currentRoom === 5 && nightSky) {
+    nightSky.draw(ctx, performance.now() / 1000, level.floorH);
+    nightSky.drawFloor(ctx, level.groundY, level.floorH, W);
+    nightSky.drawBalcony(ctx, level.groundY);
+  } else {
+    wall.draw(ctx);
+    level.draw(ctx);
+  }
   for (const f of furniture) f.draw(ctx);
   if (chest) chest.drawBody(ctx);
+  if (currentRoom === 4 && stairs) stairs.draw(ctx);
 
-  lighting.apply(ctx, W, H, allLights);
-  lighting.glow(ctx, W, H, torchLights);
+  if (currentRoom === 5 && nightSky) {
+    const moonLights = [{
+      x: nightSky.moonX,
+      y: nightSky.moonY,
+      r: nightSky.moonR * 6,
+    }];
+    moonLights.push({
+      x: king.x + king.w / 2,
+      y: level.groundY - king.h * 0.5,
+      r: Math.max(250, W * 0.18),
+    });
+    lighting.apply(ctx, W, H, moonLights);
+    lighting.glow(ctx, W, H, []);
+  } else {
+    lighting.apply(ctx, W, H, allLights);
+    lighting.glow(ctx, W, H, torchLights);
+  }
   for (const torch of torches) torch.draw(ctx);
   dust.draw(ctx);
   lighting.vignette(ctx, W, H);
