@@ -41,6 +41,8 @@ let stairs = null;
 let nightSky = null;
 let trap = null;
 let trapTriggered = false;
+let armorStand = null;
+let hasArmor = false;
 
 const dialogue = {
   active: false,
@@ -215,7 +217,7 @@ function buildWorld() {
     ];
     chest = null;
     stairs = new Stairs(W * 0.58, level.groundY, 8, 70, 38);
-  } else {
+  } else if (currentRoom === 5) {
     nightSky = new NightSky(W, H);
     torches = [];
     furniture = [];
@@ -223,6 +225,27 @@ function buildWorld() {
     stairs = null;
     trap = new Trap(W * 0.38, level.groundY, 64);
     trapTriggered = false;
+  } else {
+    torches = [
+      new Torch(W * 0.12, level.groundY * 0.20, 2.0),
+      new Torch(W * 0.40, level.groundY * 0.32, 1.9),
+      new Torch(W * 0.68, level.groundY * 0.18, 2.1),
+      new Torch(W * 0.88, level.groundY * 0.26, 1.8),
+    ];
+    furniture = [
+      new Furniture("tapestry", W * 0.45, level.groundY * 0.04, 1.7),
+      new Furniture("crate", W * 0.12, level.groundY, 1.7),
+      new Furniture("candelabra", W * 0.35, level.groundY, 1.9),
+      new Furniture("barrel", W * 0.78, level.groundY, 1.8),
+    ];
+    chest = new Chest(W * 0.30, level.groundY, 2.0);
+    chest.sound = sound;
+    chest.itemType = "food";
+    stairs = null;
+    nightSky = null;
+    trap = null;
+    armorStand = new ArmorStand(W * 0.65, level.groundY, 1.2);
+    hasArmor = false;
   }
 
   if (!inventory) inventory = new Inventory();
@@ -341,6 +364,7 @@ function frame(now) {
     if (currentRoom === 1 && knight) knight.update(dt, king.x, king.w);
     if ((currentRoom === 2 || currentRoom === 3) && scarecrow) scarecrow.update(dt, king.x, king.w);
     if (currentRoom === 3 && bowChest) bowChest.update(dt, king.x, king.w);
+    if (currentRoom === 6 && armorStand) armorStand.update(dt, king.x, king.w);
     updateDamageNumbers(dt);
     updateArrows(dt);
     if (bowCooldown > 0) bowCooldown -= dt;
@@ -374,7 +398,7 @@ function frame(now) {
   }
 
   if (!dialogue.active && !king.sleeping && !king.sneezing && !king.swinging && !trainingMenuActive) {
-    if (king.x + king.w >= W - 2 && currentRoom < 5) {
+    if (king.x + king.w >= W - 2 && currentRoom < 6) {
       fadeDir = 1;
       fadeCallback = () => {
         currentRoom++;
@@ -385,6 +409,7 @@ function frame(now) {
         stairs = null;
         nightSky = null;
         trap = null;
+        armorStand = null;
         buildWorld();
         fadeDir = -1;
       };
@@ -399,6 +424,7 @@ function frame(now) {
         stairs = null;
         nightSky = null;
         trap = null;
+        armorStand = null;
         buildWorld();
         fadeDir = -1;
       };
@@ -450,6 +476,21 @@ function frame(now) {
     if (currentRoom === 3 && bowChest && !inventory.hasItem("bow")) {
       const result = bowChest.interact();
       if (result === "bow") inventory.add("bow");
+    }
+    if (currentRoom === 6 && armorStand && !hasArmor) {
+      if (armorStand.interact()) {
+        hasArmor = true;
+        const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
+        dialogue.show(L.armorDialogue);
+      }
+    }
+    if (currentRoom === 6 && chest && chest.state === "closed") {
+      chest.interact();
+    }
+    if (currentRoom === 6 && chest && chest.state === "sword_out" && chest.near) {
+      if (chest.useFood(inventory)) {
+        spawnDamageNumber(king.x + king.w / 2, king.y - 10, "+40HP");
+      }
     }
   }
   if (!sneezeTriggered && currentRoom === 0 && chest && chest.state !== "closed" && king.x > W * 0.78 && !king.sneezing && !king.sleeping) {
@@ -519,6 +560,7 @@ function frame(now) {
 
   if (chest) chest.drawGlow(ctx);
   if (currentRoom === 1 && knight) knight.draw(ctx);
+  if (currentRoom === 6 && armorStand) armorStand.draw(ctx);
   if ((currentRoom === 2 || currentRoom === 3) && scarecrow) scarecrow.draw(ctx);
   if (currentRoom === 3 && bowChest) {
     bowChest.drawBody(ctx);
@@ -548,6 +590,8 @@ function frame(now) {
 
   if (currentRoom === 0 && chest) chest.drawHUD(ctx);
   if (currentRoom === 3 && bowChest) bowChest.drawHUD(ctx);
+  if (currentRoom === 6 && armorStand) armorStand.drawPrompt(ctx);
+  if (currentRoom === 6 && chest) chest.drawHUD(ctx);
   inventory.draw(ctx, W, H);
 
   drawStamina(ctx);
@@ -596,6 +640,24 @@ function drawStamina(ctx) {
   ctx.font = "bold 11px sans-serif";
   ctx.textAlign = "left";
   ctx.fillText("STAMINA", bx + 4, by - 7);
+
+  if (hasArmor) {
+    const ax = bx + bw + 12;
+    const ay = by - 2;
+    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    roundRect(ctx, ax - 3, ay - 3, 50 + 6, 17 + 6, 6);
+    ctx.fill();
+    ctx.fillStyle = "#6090c0";
+    roundRect(ctx, ax, ay, 50, 17, 4);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.28)";
+    roundRect(ctx, ax, ay, 50, 8, 4);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.font = "bold 10px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("ARMOR", ax + 25, ay + 12);
+  }
 }
 
 function roundRect(ctx, x, y, w, h, r) {
