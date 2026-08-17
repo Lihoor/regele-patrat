@@ -12,11 +12,11 @@ class Sound {
     if (!AC) return;
     this.ctx = new AC();
     if (!window.fetch) return;
-    const names = ["step", "step_fast", "land", "jump", "creak", "sneeze", "bow"];
+    const names = ["step", "step_fast", "land", "jump", "creak", "sneeze", "bow", "sword_swing", "sword_hit"];
     for (let i = 0; i < names.length; i++) {
       const name = names[i];
       try {
-        fetch("sounds/" + name + ".wav?v=5")
+        fetch("sounds/" + name + ".wav?v=6")
           .then((r) => r.arrayBuffer())
           .then((b) => this.ctx.decodeAudioData(b, (buf) => { this.buffers[name] = buf; this.loaded = true; }))
           .catch(() => {});
