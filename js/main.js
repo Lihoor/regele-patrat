@@ -43,6 +43,10 @@ let trap = null;
 let trapTriggered = false;
 let armorStand = null;
 let hasArmor = false;
+let boss = null;
+let bossDefeated = false;
+let bossIntroShown = false;
+let battleMusic = null;
 
 const dialogue = {
   active: false,
@@ -225,7 +229,7 @@ function buildWorld() {
     stairs = null;
     trap = new Trap(W * 0.38, level.groundY, 64);
     trapTriggered = false;
-  } else {
+  } else if (currentRoom === 6) {
     torches = [
       new Torch(W * 0.12, level.groundY * 0.20, 2.0),
       new Torch(W * 0.40, level.groundY * 0.32, 1.9),
@@ -246,12 +250,32 @@ function buildWorld() {
     trap = null;
     armorStand = new ArmorStand(W * 0.65, level.groundY, 1.2);
     hasArmor = false;
+  } else if (currentRoom === 7) {
+    torches = [
+      new Torch(W * 0.10, level.groundY * 0.18, 2.2),
+      new Torch(W * 0.30, level.groundY * 0.25, 2.0),
+      new Torch(W * 0.70, level.groundY * 0.25, 2.0),
+      new Torch(W * 0.90, level.groundY * 0.18, 2.2),
+    ];
+    furniture = [
+      new Furniture("crate", W * 0.05, level.groundY, 1.6),
+      new Furniture("barrel", W * 0.92, level.groundY, 1.6),
+    ];
+    chest = null;
+    stairs = null;
+    nightSky = null;
+    trap = null;
+    armorStand = null;
+    if (!boss || boss.dead) {
+      boss = new Boss(W * 0.75, level.groundY, 2.0);
+    }
   }
 
   if (!inventory) inventory = new Inventory();
 
   dust = new Dust(W, H);
   if (!lighting) lighting = new Lighting();
+  if (!battleMusic) battleMusic = new BattleMusic();
   if (!menu) menu = new Menu(W, H);
 }
 
@@ -288,10 +312,29 @@ canvas.addEventListener("click", (e) => {
     return;
   }
 
-  if (king.heldItem === "sword" && !dialogue.active && !king.sleeping && !king.sneezing && !king.swinging) {
-    king.startSwing();
-    if (sound) sound.play("sword_swing", 1, 0.5);
-    if (scarecrow && !scarecrow.dead && (currentRoom === 2 || currentRoom === 3)) {
+    if (king.heldItem === "sword" && !dialogue.active && !king.sleeping && !king.sneezing && !king.swinging) {
+      king.startSwing();
+      if (sound) sound.play("sword_swing", 1, 0.5);
+      if (currentRoom === 7 && boss && !boss.dead) {
+        const bcx = boss.centerX;
+        const kcx = king.x + king.w / 2;
+        const dist = Math.abs(bcx - kcx);
+        if (dist < 160) {
+          const dmg = boss.takeDamage(20);
+          if (dmg > 0) {
+            spawnDamageNumber(boss.centerX, boss.y - 10, dmg);
+            if (sound) sound.play("sword_hit", 1, 0.6);
+            if (boss.dead) {
+              bossDefeated = true;
+              if (battleMusic) battleMusic.stop();
+              setTimeout(() => {
+                const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
+                dialogue.show(L.bossDefeated);
+              }, 1200);
+            }
+          }
+        }
+      } else if (scarecrow && !scarecrow.dead && (currentRoom === 2 || currentRoom === 3)) {
       const scx = scarecrow.x + scarecrow.w / 2;
       const kcx = king.x + king.w / 2;
       const dist = Math.abs(scx - kcx);
@@ -358,6 +401,18 @@ function frame(now) {
   if (menu && menu.music) menu.music.update(dt);
   sound.unlock();
 
+  if (currentRoom === 7 && boss && !bossIntroShown && !bossDefeated && !dialogue.active) {
+    bossIntroShown = true;
+    const L = LANG[menu ? menu.lang : "ro"] || LANG.ro;
+    dialogue.show(L.bossIntro);
+    dialogue.onDone = () => {
+      if (sound && sound.ctx && battleMusic) {
+        battleMusic.load(sound.ctx);
+        battleMusic.play(sound.ctx);
+      }
+    };
+  }
+
   if (!dialogue.active) {
     king.update(dt, input, level, dust);
     if (currentRoom === 0 && chest) chest.update(dt, king.x, king.w);
@@ -366,6 +421,19 @@ function frame(now) {
     if ((currentRoom === 2 || currentRoom === 3) && scarecrow) scarecrow.update(dt, king.x, king.w);
     if (currentRoom === 3 && bowChest) bowChest.update(dt, king.x, king.w);
     if (currentRoom === 6 && armorStand) armorStand.update(dt, king.x, king.w);
+    if (currentRoom === 7 && boss && !boss.dead) {
+      boss.update(dt, king.x, king.w, king.y);
+      const dmg = boss.canDamage(king.x, king.w, king.y);
+      if (dmg > 0 && inventory) {
+        inventory.hp = Math.max(0, inventory.hp - dmg);
+        spawnDamageNumber(king.x + king.w / 2, king.y - 10, dmg);
+        king.knockback = boss.facing * 180;
+        if (sound) sound.play("hit", 1, 0.5);
+      }
+    }
+    if (currentRoom === 7 && boss && boss.dying) {
+      boss.update(dt, king.x, king.w, king.y);
+    }
     updateDamageNumbers(dt);
     updateArrows(dt);
     if (bowCooldown > 0) bowCooldown -= dt;
@@ -399,7 +467,8 @@ function frame(now) {
   }
 
   if (!dialogue.active && !king.sleeping && !king.sneezing && !king.swinging && !trainingMenuActive) {
-    if (king.x + king.w >= W - 2 && currentRoom < 6) {
+    const canLeaveRoom = currentRoom !== 7 || bossDefeated;
+    if (king.x + king.w >= W - 2 && currentRoom < 7 && canLeaveRoom) {
       fadeDir = 1;
       fadeCallback = () => {
         currentRoom++;
@@ -411,10 +480,16 @@ function frame(now) {
         nightSky = null;
         trap = null;
         armorStand = null;
+        if (currentRoom !== 7) boss = null;
+        if (currentRoom !== 7 && battleMusic) battleMusic.stop();
+        if (currentRoom === 7 && battleMusic) {
+          if (sound && sound.ctx) battleMusic.load(sound.ctx);
+          setTimeout(() => { if (sound && sound.ctx && currentRoom === 7) battleMusic.play(sound.ctx); }, 500);
+        }
         buildWorld();
         fadeDir = -1;
       };
-    } else if (king.x <= 2 && currentRoom > 0) {
+    } else if (king.x <= 2 && currentRoom > 0 && canLeaveRoom) {
       fadeDir = 1;
       fadeCallback = () => {
         currentRoom--;
@@ -426,6 +501,8 @@ function frame(now) {
         nightSky = null;
         trap = null;
         armorStand = null;
+        if (currentRoom !== 7) boss = null;
+        if (battleMusic) battleMusic.stop();
         buildWorld();
         fadeDir = -1;
       };
@@ -468,7 +545,7 @@ function frame(now) {
             trainingPhase = "menu";
             trainingMenuActive = true;
           };
-        } else {
+  } else if (currentRoom === 6) {
           trainingPhase = "menu";
           trainingMenuActive = true;
         }
@@ -563,6 +640,7 @@ function frame(now) {
   if (chest) chest.drawGlow(ctx);
   if (currentRoom === 1 && knight) knight.draw(ctx);
   if (currentRoom === 6 && armorStand) armorStand.draw(ctx);
+  if (currentRoom === 7 && boss) boss.draw(ctx);
   if ((currentRoom === 2 || currentRoom === 3) && scarecrow) scarecrow.draw(ctx);
   if (currentRoom === 3 && bowChest) {
     bowChest.drawBody(ctx);
@@ -595,6 +673,7 @@ function frame(now) {
   if (currentRoom === 6 && armorStand) armorStand.drawPrompt(ctx);
   if (currentRoom === 6 && chest) chest.drawHUD(ctx);
   inventory.draw(ctx, W, H);
+  if (currentRoom === 7 && boss) boss.drawHealthBar(ctx);
 
   drawStamina(ctx);
 
