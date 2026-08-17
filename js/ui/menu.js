@@ -62,6 +62,13 @@ const LANG = {
     roomBalcony: "Balconul Castelului",
     armorDialogue: "O armura veche! Ar putea fi utila...",
     roomArmory: "Arsenalul",
+    bossIntro: [
+      "Rege: Ce e asta?! Un cavaler... mutant?!",
+      "Cavalerul: HAHAHA! In sfarsit, un adversar!",
+      "Cavalerul: Te voi face praf, micule rege!"
+    ],
+    bossDefeated: "Rege: Am castigat! Calea e libera!",
+    roomBoss: "Arena Luptei",
   },
   en: {
     title: "The Sleeping King",
@@ -126,6 +133,13 @@ const LANG = {
     roomBalcony: "Castle Balcony",
     armorDialogue: "An old suit of armor! This could be useful...",
     roomArmory: "The Armory",
+    bossIntro: [
+      "King: What is that?! A... mutant knight?!",
+      "Mutant Knight: HAHAHA! Finally, a worthy opponent!",
+      "Mutant Knight: I will crush you, little king!"
+    ],
+    bossDefeated: "King: I won! The path is clear!",
+    roomBoss: "Battle Arena",
   },
 };
 
