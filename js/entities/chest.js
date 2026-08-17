@@ -10,6 +10,7 @@ class Chest {
     this.near = false;
     this.promptAlpha = 0;
     this.sound = null;
+    this.itemType = "sword";
   }
 
   update(dt, kingX, kingW) {
@@ -49,7 +50,7 @@ class Chest {
     }
     if (this.state === "sword_out" && this.near) {
       this.state = "picked";
-      return "sword";
+      return this.itemType;
     }
     return null;
   }
